@@ -1,12 +1,10 @@
 import "dotenv/config";
-import {Config} from "../interfaces/Config";
-
-let config: Config;
+import { Config } from "../interfaces/Config";
 
 try {
-	config = require("../config.json");
+	var config: Config = require("../config.json");
 } catch (error) {
-	config = {
+	var config: Config = {
 		TOKEN: process.env.TOKEN || "",
 		PREFIX: process.env.PREFIX || "!",
 		MAX_PLAYLIST_SIZE: parseInt(process.env.MAX_PLAYLIST_SIZE!) || 10,
@@ -19,4 +17,4 @@ try {
 	};
 }
 
-export {config};
+export { config };

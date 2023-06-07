@@ -336,7 +336,6 @@ export class MusicQueue {
 					}
 					break;
 				case "volumeDown": {
-					if (this.volume == 0) return;
 					this.volume = Math.max(this.volume - 10, 0);
 					this.resource.volume?.setVolumeLogarithmic(
 						this.volume / 100
@@ -353,7 +352,6 @@ export class MusicQueue {
 					break;
 				}
 				case "volumeUp":
-					if (this.volume == 100) return;
 					this.volume = Math.min(this.volume + 10, 100);
 					this.resource.volume?.setVolumeLogarithmic(
 						this.volume / 100
