@@ -27,9 +27,12 @@ jobs:
         echo 'TOKEN="${{secrets.TOKEN}}"' >> ./dist/.env
         echo 'UNSPLASH_ACCESS_KEY="${{secrets.UNSPLASH_ACCESS_KEY}}' >> ./dist/.env
     - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      uses: SamKirkland/FTP-Deploy-Action@v2.0.0
       with:
-        server: v-buf-17.sparkedhost.us
-        username: ${{secrets.USERNAME}}
-        password: ${{secrets.PASSWORD}}
-        local-dir: ./dist/
+        method: sftp
+        ftp_password: ${{secrets.PASSWORD}}
+        ftp_server: ${{secrets.SERVER}}
+        ftp_username: ${{secrets.USERNAME}}
+        local_dir: dist
+        port: 2022
+        
