@@ -32,4 +32,4 @@ jobs:
         server: v-buf-17.sparkedhost.us
         username: ${{secrets.USERNAME}}
         password: ${{secrets.PASSWORD}}
-        local-dir: ./dist
+        local-dir: ./dist/
