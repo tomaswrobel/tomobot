@@ -11,14 +11,14 @@ import {
 	VoiceConnectionState,
 	VoiceConnectionStatus,
 } from "@discordjs/voice";
-import {CommandInteraction, Message, TextChannel, User} from "discord.js";
-import {promisify} from "node:util";
-import {bot} from "../index";
-import {QueueOptions} from "../interfaces/QueueOptions";
-import {config} from "../utils/config";
-import {i18n} from "../utils/i18n";
-import {canModifyQueue} from "../utils/queue";
-import {Song} from "./Song";
+import { ActionRowBuilder, ButtonBuilder, CommandInteraction, ComponentType, Message, TextChannel, User } from "discord.js";
+import { promisify } from "node:util";
+import { bot } from "../index";
+import { QueueOptions } from "../interfaces/QueueOptions";
+import { config } from "../utils/config";
+import { i18n } from "../utils/i18n";
+import { canModifyQueue } from "../utils/queue";
+import { Song } from "./Song";
 
 const wait = promisify(setTimeout);
 
@@ -43,7 +43,7 @@ export class MusicQueue {
 		Object.assign(this, options);
 
 		this.player = createAudioPlayer({
-			behaviors: {noSubscriber: NoSubscriberBehavior.Play},
+			behaviors: { noSubscriber: NoSubscriberBehavior.Play },
 		});
 		this.connection.subscribe(this.player);
 
@@ -73,7 +73,7 @@ export class MusicQueue {
 				if (newState.status === VoiceConnectionStatus.Disconnected) {
 					if (
 						newState.reason ===
-							VoiceConnectionDisconnectReason.WebSocketClose &&
+						VoiceConnectionDisconnectReason.WebSocketClose &&
 						newState.closeCode === 4014
 					) {
 						try {
@@ -109,7 +109,7 @@ export class MusicQueue {
 						) {
 							try {
 								this.connection.destroy();
-							} catch {}
+							} catch { }
 						}
 					} finally {
 						this.readyLock = false;
@@ -185,7 +185,7 @@ export class MusicQueue {
 			) {
 				try {
 					this.connection.destroy();
-				} catch {}
+				} catch { }
 			}
 			bot.queues.delete(this.interaction.guild!.id);
 
@@ -231,20 +231,46 @@ export class MusicQueue {
 		let playingMessage: Message;
 
 		try {
-			playingMessage = await this.textChannel.send(
-				(
-					newState.resource as AudioResource<Song>
-				).metadata.startMessage()
-			);
+			const row = new ActionRowBuilder<ButtonBuilder>()
+				.addComponents(
+					new ButtonBuilder()
+						.setEmoji("⏭")
+						.setLabel("Skip")
+						.setCustomId("skip"),
+					new ButtonBuilder()
+						.setEmoji("⏯")
+						.setLabel("Pause")
+						.setCustomId("pause"),
+					new ButtonBuilder()
+						.setEmoji("🔇")
+						.setLabel("Mute")
+						.setCustomId("mute"),
+					new ButtonBuilder()
+						.setEmoji("🔉")
+						.setLabel("Volume Down")
+						.setCustomId("volumeDown"),
+					new ButtonBuilder()
+						.setEmoji("🔊")
+						.setLabel("Volume Up")
+						.setCustomId("volumeUp"),
+					new ButtonBuilder()
+						.setEmoji("🔁")
+						.setLabel("Loop")
+						.setCustomId("loop"),
+					new ButtonBuilder()
+						.setEmoji("🔀")
+						.setLabel("Shuffle")
+						.setCustomId("shuffle"),
+					new ButtonBuilder()
+						.setEmoji("⏹")
+						.setLabel("Stop")
+						.setCustomId("stop"),
+				);
 
-			await playingMessage.react("⏭");
-			await playingMessage.react("⏯");
-			await playingMessage.react("🔇");
-			await playingMessage.react("🔉");
-			await playingMessage.react("🔊");
-			await playingMessage.react("🔁");
-			await playingMessage.react("🔀");
-			await playingMessage.react("⏹");
+			playingMessage = await this.textChannel.send({
+				content: (newState.resource as AudioResource<Song>).metadata.startMessage(),
+				components: [row],
+			});
 		} catch (error: any) {
 			console.error(error);
 			this.textChannel.send(error.message);
@@ -254,26 +280,19 @@ export class MusicQueue {
 		const filter = (reaction: any, user: User) =>
 			user.id !== this.textChannel.client.user!.id;
 
-		const collector = playingMessage.createReactionCollector({
-			filter,
+		const collector = playingMessage.createMessageComponentCollector({
+			componentType: ComponentType.Button,
 			time: song.duration > 0 ? song.duration * 1000 : 600000,
 		});
 
-		collector.on("collect", async (reaction, user) => {
-			if (!this.songs) return;
-
-			const member = await playingMessage.guild!.members.fetch(user);
-
-			switch (reaction.emoji.name) {
-				case "⏭":
-					reaction.users.remove(user).catch(console.error);
+		collector.on("collect", async ({ customId, user }) => {
+			switch (customId) {
+				case "skip":
 					await this.bot.slashCommandsMap
 						.get("skip")!
 						.execute(this.interaction);
 					break;
-
-				case "⏯":
-					reaction.users.remove(user).catch(console.error);
+				case "pause":
 					if (this.player.state.status == AudioPlayerStatus.Playing) {
 						await this.bot.slashCommandsMap
 							.get("pause")!
@@ -284,32 +303,23 @@ export class MusicQueue {
 							.execute(this.interaction);
 					}
 					break;
-
-				case "🔇":
-					reaction.users.remove(user).catch(console.error);
-					if (!canModifyQueue(member))
-						return i18n.__("common.errorNotChannel");
-					this.muted = !this.muted;
-					if (this.muted) {
+				case "mute":
+					if (this.muted = !this.muted) {
 						this.resource.volume?.setVolumeLogarithmic(0);
 						this.textChannel
-							.send(i18n.__mf("play.mutedSong", {author: user}))
+							.send(i18n.__mf("play.mutedSong", { author: user }))
 							.catch(console.error);
 					} else {
 						this.resource.volume?.setVolumeLogarithmic(
 							this.volume / 100
 						);
 						this.textChannel
-							.send(i18n.__mf("play.unmutedSong", {author: user}))
+							.send(i18n.__mf("play.unmutedSong", { author: user }))
 							.catch(console.error);
 					}
 					break;
-
-				case "🔉":
-					reaction.users.remove(user).catch(console.error);
+				case "volumeDown":
 					if (this.volume == 0) return;
-					if (!canModifyQueue(member))
-						return i18n.__("common.errorNotChannel");
 					this.volume = Math.max(this.volume - 10, 0);
 					this.resource.volume?.setVolumeLogarithmic(
 						this.volume / 100
@@ -323,12 +333,8 @@ export class MusicQueue {
 						)
 						.catch(console.error);
 					break;
-
-				case "🔊":
-					reaction.users.remove(user).catch(console.error);
+				case "volumeUp":
 					if (this.volume == 100) return;
-					if (!canModifyQueue(member))
-						return i18n.__("common.errorNotChannel");
 					this.volume = Math.min(this.volume + 10, 100);
 					this.resource.volume?.setVolumeLogarithmic(
 						this.volume / 100
@@ -342,38 +348,27 @@ export class MusicQueue {
 						)
 						.catch(console.error);
 					break;
-
-				case "🔁":
-					reaction.users.remove(user).catch(console.error);
+				case "loop":
 					await this.bot.slashCommandsMap
 						.get("loop")!
 						.execute(this.interaction);
 					break;
-
-				case "🔀":
-					reaction.users.remove(user).catch(console.error);
+				case "shuffle":
 					await this.bot.slashCommandsMap
 						.get("shuffle")!
 						.execute(this.interaction);
 					break;
 
-				case "⏹":
-					reaction.users.remove(user).catch(console.error);
+				case "stop":
 					await this.bot.slashCommandsMap
 						.get("stop")!
 						.execute(this.interaction);
 					collector.stop();
 					break;
-
-				default:
-					reaction.users.remove(user).catch(console.error);
-					break;
 			}
 		});
 
 		collector.on("end", () => {
-			playingMessage.reactions.removeAll().catch(console.error);
-
 			if (config.PRUNING) {
 				setTimeout(() => {
 					playingMessage.delete().catch();
