@@ -1,6 +1,9 @@
 name: 🚀 Deploy website on push
-on: push
-
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 jobs:
   web-deploy:
     name: 🎉 Deploy
