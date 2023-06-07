@@ -30,7 +30,6 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v2.0.0
       env:
         METHOD: sftp
-        ARGS: --delete
         FTP_PASSWORD: ${{secrets.PASSWORD}}
         FTP_SERVER: v-buf-17.sparkedhost.us
         FTP_USERNAME: ${{secrets.USERNAME}}
