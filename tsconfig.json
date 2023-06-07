@@ -17,7 +17,6 @@
         "types": [
             "node"
         ],
-        "sourceMap": true,
         "strictPropertyInitialization": false
     }
 }

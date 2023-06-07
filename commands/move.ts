@@ -1,4 +1,4 @@
-import {arrayMoveImmutable as move} from "array-move";
+import move from "array-move";
 import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
 import {bot} from "../index";
 import {i18n} from "../utils/i18n";
