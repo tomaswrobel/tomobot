@@ -1,0 +1,26 @@
+on: push
+name: 🚀 Deploy website on push
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v3
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+    - name: 📦 Install dependencies
+      run: npm install
+    - name: 🏗 Build
+      run: npm run build
+    - name: Add config
+      run: |
+        echo 'TOKEN="${{secrets.TOKEN}}"' >> ./dist/.env
+        echo 'UNSPLASH_ACCESS_KEY="${{secrets.UNSPLASH_ACCESS_KEY}}' >> ./dist/.env
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: v-buf-17.sparkedhost.us
+        username: ${{secrets.USERNAME}}
+        password: ${{secrets.PASSWORD}}
+        local-dir: ./dist
