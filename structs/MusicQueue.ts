@@ -253,6 +253,9 @@ export class MusicQueue {
 						.setLabel("Volume Down")
 						.setStyle(ButtonStyle.Primary)
 						.setCustomId("volumeDown"),
+				);
+			const row2 = new ActionRowBuilder<ButtonBuilder>()
+				.addComponents(
 					new ButtonBuilder()
 						.setEmoji("🔊")
 						.setLabel("Volume Up")
@@ -277,7 +280,7 @@ export class MusicQueue {
 
 			playingMessage = await this.textChannel.send({
 				content: (newState.resource as AudioResource<Song>).metadata.startMessage(),
-				components: [row],
+				components: [row, row2],
 			});
 		} catch (error: any) {
 			console.error(error);
