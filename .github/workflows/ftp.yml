@@ -1,9 +1,5 @@
 name: 🚀 Deploy website on push
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+on: push
 
 jobs:
   web-deploy:
@@ -20,8 +16,10 @@ jobs:
       run: npm i -g typescript
     - name: 🏗 Build
       run: tsc
-    - name: Move package.json
-      run: mv package.json ./dist/package.json
+    - name: Move fils
+      run: |
+        mv package.json ./dist/package.json
+        mv ./locales/ ./dist/locales/
     - name: Add config
       run: |
         echo 'TOKEN="${{secrets.TOKEN}}"' >> ./dist/.env
