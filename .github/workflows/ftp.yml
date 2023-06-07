@@ -29,10 +29,10 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v2.0.0
       with:
-        method: sftp
-        ftp_password: ${{secrets.PASSWORD}}
-        ftp_server: ${{secrets.SERVER}}
-        ftp_username: ${{secrets.USERNAME}}
-        local_dir: dist
-        port: 2022
+        METHOD: sftp
+        FTP_PASSWORD: ${{secrets.PASSWORD}}
+        FTP_SERVER: ${{secrets.SERVER}}
+        FTP_USERNAME: ${{secrets.USERNAME}}
+        LOCAL_DIR: dist
+        PORT: 2022
         
