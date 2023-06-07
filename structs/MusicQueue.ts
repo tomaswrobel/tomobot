@@ -11,7 +11,7 @@ import {
 	VoiceConnectionState,
 	VoiceConnectionStatus,
 } from "@discordjs/voice";
-import { ActionRowBuilder, ButtonBuilder, CommandInteraction, ComponentType, Message, TextChannel, User } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, ComponentType, Message, TextChannel, User } from "discord.js";
 import { promisify } from "node:util";
 import { bot } from "../index";
 import { QueueOptions } from "../interfaces/QueueOptions";
@@ -236,34 +236,42 @@ export class MusicQueue {
 					new ButtonBuilder()
 						.setEmoji("⏭")
 						.setLabel("Skip")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("skip"),
 					new ButtonBuilder()
 						.setEmoji("⏯")
 						.setLabel("Pause")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("pause"),
 					new ButtonBuilder()
 						.setEmoji("🔇")
 						.setLabel("Mute")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("mute"),
 					new ButtonBuilder()
 						.setEmoji("🔉")
 						.setLabel("Volume Down")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("volumeDown"),
 					new ButtonBuilder()
 						.setEmoji("🔊")
 						.setLabel("Volume Up")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("volumeUp"),
 					new ButtonBuilder()
 						.setEmoji("🔁")
 						.setLabel("Loop")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("loop"),
 					new ButtonBuilder()
 						.setEmoji("🔀")
 						.setLabel("Shuffle")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("shuffle"),
 					new ButtonBuilder()
 						.setEmoji("⏹")
 						.setLabel("Stop")
+						.setStyle(ButtonStyle.Primary)
 						.setCustomId("stop"),
 				);
 
