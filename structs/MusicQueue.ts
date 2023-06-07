@@ -288,92 +288,101 @@ export class MusicQueue {
 			return;
 		}
 
-		const filter = (reaction: any, user: User) =>
-			user.id !== this.textChannel.client.user!.id;
-
 		const collector = playingMessage.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 			time: song.duration > 0 ? song.duration * 1000 : 600000,
 		});
 
-		collector.on("collect", async ({ customId, user }) => {
-			switch (customId) {
+		collector.on("collect", async (interaction) => {
+			switch (interaction.customId) {
 				case "skip":
 					await this.bot.slashCommandsMap
 						.get("skip")!
-						.execute(this.interaction);
+						.execute(interaction);
 					break;
 				case "pause":
 					if (this.player.state.status == AudioPlayerStatus.Playing) {
 						await this.bot.slashCommandsMap
 							.get("pause")!
-							.execute(this.interaction);
+							.execute(interaction);
 					} else {
 						await this.bot.slashCommandsMap
 							.get("resume")!
-							.execute(this.interaction);
+							.execute(interaction);
 					}
 					break;
 				case "mute":
 					if (this.muted = !this.muted) {
 						this.resource.volume?.setVolumeLogarithmic(0);
-						this.textChannel
-							.send(i18n.__mf("play.mutedSong", { author: user }))
-							.catch(console.error);
+						if (interaction.replied) {
+							await interaction.editReply(
+								i18n.__mf("play.mutedSong", { author: interaction.user })
+							).catch(console.error);
+						} else {
+							await interaction.reply(
+								i18n.__mf("play.mutedSong", { author: interaction.user })
+							).catch(console.error);
+						}
 					} else {
 						this.resource.volume?.setVolumeLogarithmic(
 							this.volume / 100
 						);
-						this.textChannel
-							.send(i18n.__mf("play.unmutedSong", { author: user }))
-							.catch(console.error);
+						const msg = i18n.__mf("play.unmutedSong", { author: interaction.user });
+						if (interaction.replied) {
+							await interaction.editReply(msg).catch(console.error);
+						} else {
+							await interaction.reply(msg).catch(console.error);
+						}
 					}
 					break;
-				case "volumeDown":
+				case "volumeDown": {
 					if (this.volume == 0) return;
 					this.volume = Math.max(this.volume - 10, 0);
 					this.resource.volume?.setVolumeLogarithmic(
 						this.volume / 100
 					);
-					this.textChannel
-						.send(
-							i18n.__mf("play.decreasedVolume", {
-								author: user,
-								volume: this.volume,
-							})
-						)
-						.catch(console.error);
+					const msg = i18n.__mf("play.decreasedVolume", {
+						author: interaction.user,
+						volume: this.volume,
+					});
+					if (interaction.replied) {
+						await interaction.editReply(msg).catch(console.error);
+					} else {
+						await interaction.reply(msg).catch(console.error);
+					}
 					break;
+				}
 				case "volumeUp":
 					if (this.volume == 100) return;
 					this.volume = Math.min(this.volume + 10, 100);
 					this.resource.volume?.setVolumeLogarithmic(
 						this.volume / 100
 					);
-					this.textChannel
-						.send(
-							i18n.__mf("play.increasedVolume", {
-								author: user,
-								volume: this.volume,
-							})
-						)
-						.catch(console.error);
+					const msg = i18n.__mf("play.increasedVolume", {
+						author: interaction.user,
+						volume: this.volume,
+					});
+					if (interaction.replied) {
+						await interaction.editReply(msg).catch(console.error);
+					} else {
+						await interaction.reply(msg).catch(console.error);
+					}
 					break;
 				case "loop":
 					await this.bot.slashCommandsMap
 						.get("loop")!
-						.execute(this.interaction);
+						.execute(interaction);
 					break;
 				case "shuffle":
 					await this.bot.slashCommandsMap
 						.get("shuffle")!
-						.execute(this.interaction);
+						.execute(interaction);
 					break;
 
 				case "stop":
 					await this.bot.slashCommandsMap
 						.get("stop")!
-						.execute(this.interaction);
+						.execute(interaction);
 					collector.stop();
 					break;
 			}
