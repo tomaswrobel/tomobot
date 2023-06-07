@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Config } from "../interfaces/Config";
+import {Config} from "../interfaces/Config";
 
 try {
 	var config: Config = require("../config.json");
@@ -17,4 +17,4 @@ try {
 	};
 }
 
-export { config };
+export {config};

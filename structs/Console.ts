@@ -90,7 +90,10 @@ class Console {
 					(type === "ts"
 						? "4/4c/Typescript_logo_2020.svg/240px-Typescript_logo_2020.svg.png"
 						: "6/6a/JavaScript-logo.png/240px-JavaScript-logo.png"),
-				url: type === "ts" ? "https://www.typescriptlang.org/" : undefined,
+				url:
+					type === "ts"
+						? "https://www.typescriptlang.org/"
+						: undefined,
 			},
 		});
 
