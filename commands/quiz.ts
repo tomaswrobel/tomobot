@@ -17,25 +17,24 @@ export default {
 		const [quiz] = await fetch(
 			"https://the-trivia-api.com/v2/questions/?limit=1"
 		).then(res => res.json());
-		const selectBox = new StringSelectMenuBuilder()
-			.addOptions(
-				[...quiz.incorrectAnswers, quiz.correctAnswer]
-					.sort(() => Math.random() - 0.5)
-					.map(answer =>
-						new StringSelectMenuOptionBuilder()
-							.setLabel(answer)
-							.setValue(answer)
-					)
-			)
-			.setMaxValues(1)
-			.setMinValues(1)
-			.setPlaceholder("Select an answer");
 
 		const reply = await interaction.followUp({
 			content: "📝 **" + quiz.question.text + "**",
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					selectBox.setCustomId("quiz")
+					new StringSelectMenuBuilder()
+						.addOptions(
+							[...quiz.incorrectAnswers, quiz.correctAnswer]
+								.sort(() => Math.random() - 0.5)
+								.map(answer =>
+									new StringSelectMenuOptionBuilder()
+										.setLabel(answer)
+										.setValue(answer)
+								)
+						)
+						.setMaxValues(1)
+						.setMinValues(1)
+						.setPlaceholder("Select an answer")
 				),
 			],
 		});
@@ -45,16 +44,16 @@ export default {
 		});
 
 		collector.on("collect", async interaction => {
+			await interaction.update({
+				components: [],
+			});
+
 			if (interaction.values[0] === quiz.correctAnswer) {
-				await interaction.update({
-					content: "✅ **Correct!**",
-					components: [],
-				});
+				await interaction.followUp("✅ **Correct**");
 			} else {
-				await interaction.update({
-					content: "❌ **Wrong!**",
-					components: [],
-				});
+				await interaction.followUp(
+					`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`
+				);
 			}
 		});
 	},
