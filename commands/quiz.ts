@@ -4,6 +4,7 @@ import {
 	ComponentType,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
+	StringSelectMenuOptionBuilder,
 } from "discord.js";
 
 export default {
@@ -18,9 +19,13 @@ export default {
 		).then(res => res.json());
 		const selectBox = new StringSelectMenuBuilder()
 			.addOptions(
-				[...quiz.incorrectAnswers, quiz.correctAnswer].sort(
-					() => Math.random() - 0.5
-				)
+				[...quiz.incorrectAnswers, quiz.correctAnswer]
+					.sort(() => Math.random() - 0.5)
+					.map(answer =>
+						new StringSelectMenuOptionBuilder()
+							.setLabel(answer)
+							.setValue(answer)
+					)
 			)
 			.setMaxValues(1)
 			.setMinValues(1)
