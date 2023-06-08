@@ -32,7 +32,7 @@ export default {
 			.setPlaceholder("Select an answer");
 
 		const reply = await interaction.followUp({
-			content: "📝 **" + quiz.question + "**",
+			content: "📝 **" + quiz.question.text + "**",
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					selectBox.setCustomId("quiz")
