@@ -13,7 +13,7 @@ export default {
 	async execute(interaction: ChatInputCommandInteraction) {
 		await interaction.reply("⏳ Loading...").catch(console.error);
 
-		const quiz = await fetch(
+		const [quiz] = await fetch(
 			"https://the-trivia-api.com/v2/questions/?limit=1"
 		).then(res => res.json());
 		const selectBox = new StringSelectMenuBuilder()
