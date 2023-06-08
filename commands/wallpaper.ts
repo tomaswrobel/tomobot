@@ -10,51 +10,68 @@ const unsplash = createApi({
 	accessKey: config.UNSPLASH_ACCESS_KEY,
 });
 
+async function getPhoto(query: string | null) {
+	if (query) {
+		const {response} = await unsplash.search.getPhotos({
+			query,
+		});
+
+		if (!response) {
+			throw new Error("Something went wrong");
+		}
+
+		if (response.results.length === 0) {
+			throw new Error("No results found");
+		}
+
+		return response.results[Math.floor(Math.random() * 10)];
+	} else {
+		const {response} = await unsplash.photos.getRandom({
+			count: 1,
+		});
+
+		if (!response) {
+			throw new Error("Something went wrong");
+		}
+
+		return Array.isArray(response) ? response[0] : response;
+	}
+}
+
 export default {
 	data: new SlashCommandBuilder()
 		.setDescription("Searches for a wallpaper")
 		.addStringOption(option =>
 			option
 				.setName("query")
-				.setDescription("Search query")
-				.setRequired(true)
+				.setDescription("Search query. If empty, returns a random photo")
+				.setRequired(false)
 		)
 		.setName("wallpaper"),
 	async execute(interaction: ChatInputCommandInteraction) {
-		const query = interaction.options.getString("query", true);
+		const query = interaction.options.getString("query", false);
 		await interaction.reply(`Searching for ${query}...`);
-		const photos = await unsplash.search.getPhotos({
-			query,
-			page: 1,
-		});
 
-		if (photos.errors) {
-			return interaction.editReply({
-				content: "Something went wrong",
-			});
+		try {
+			var photo = await getPhoto(query);
+		} catch (error: any) {
+			return interaction.editReply(String(error));
 		}
-
-		if (photos.response?.results.length === 0) {
-			return interaction.editReply({
-				content: "No results found",
-			});
-		}
-
-		const photo = photos.response!.results[Math.floor(Math.random() * 10)];
 
 		const embed = new EmbedBuilder()
-			.setTitle(photo.alt_description || photo.description || "Untitled")
+			.setTitle(photo.alt_description || photo.description)
 			.setAuthor({
 				name: photo.user.name,
 				iconURL: photo.user.profile_image.small,
-				url: photo.user.links.html,
+				url:
+					photo.user.links.html +
+					"?utm_source=tomobot&utm_medium=referral",
 			})
-			.setImage(photo.urls.regular)
+			.setColor(photo.color as `#${string}` | null)
 			.setFooter({
-				text: "Powered by Unsplash",
-				iconURL:
-					"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Logo_of_Unsplash.svg/240px-Logo_of_Unsplash.svg.png",
-			});
+				text: "by Unsplash",
+			})
+			.setImage(photo.urls.regular);
 
 		return interaction.editReply({
 			embeds: [embed],

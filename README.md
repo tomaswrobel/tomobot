@@ -97,6 +97,7 @@ Currently available locales are:
 1. Button-based media control
 2. `delete` and `wallpaper` command
 3. Running JS and TS from message
+4. Quizzes
 
 ## LICENSE
 Original Author &copy; Erit Islami 2019

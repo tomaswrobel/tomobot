@@ -16,10 +16,6 @@ export default {
 			.setColor("#F8AA2A");
 
 		for (const {data} of bot.slashCommandsMap.values()) {
-			if (data.name === "wallpaper") {
-				continue;
-			}
-
 			helpEmbed.addFields({
 				name: `**${data.name}**`,
 				value: `${data.description}`,
@@ -36,7 +32,7 @@ export default {
 					}),
 				embeds: [
 					helpEmbed.setAuthor({
-						name: "Evobot",
+						name: "Commands",
 						iconURL:
 							interaction.client.user!.avatarURL({
 								size: 64,
@@ -59,16 +55,6 @@ export default {
 						})
 						.setDescription(
 							"If your message includes only JavaScript code block, it will be evaluated. Just type \n```\n`\u200B``js\n\n`\u200B``\n```  and paste your code inside. Example:\n```ts\nconsole.log('Hello world!')\n```\nYou have access to `console` and you can use top-level await. Also, `console.read()` can be used to read user input."
-						),
-					new EmbedBuilder()
-						.setAuthor({
-							name: "Unsplash",
-							iconURL:
-								"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Logo_of_Unsplash.svg/240px-Logo_of_Unsplash.svg.png",
-							url: "https://unsplash.com/",
-						})
-						.setDescription(
-							"Searches for a wallpaper \n ```\n/wallpaper <query>\n```"
 						),
 				],
 			})
