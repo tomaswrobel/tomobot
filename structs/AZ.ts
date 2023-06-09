@@ -26,8 +26,6 @@ class AZ {
 			interaction.user,
 			interaction.options.getUser("user", true),
 		];
-
-		this.start();
 	}
 
 	async start() {
