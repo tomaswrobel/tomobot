@@ -7,6 +7,7 @@ import {
 	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 	User,
+	AnyThreadChannel,
 } from "discord.js";
 import sharp from "sharp";
 
@@ -17,6 +18,8 @@ class AZHex {
 }
 
 class AZ {
+	thread: AnyThreadChannel;
+
 	constructor(private interaction: ChatInputCommandInteraction) {
 		this.players = [
 			interaction.user,
@@ -26,6 +29,13 @@ class AZ {
 
 	async start() {
 		const reply = await this.update();
+		this.thread = await reply.startThread({
+			name: `AZ Quiz - ${this.players[0].username} vs ${this.players[1].username}`,
+			autoArchiveDuration: 60,
+			reason: "AZ Quiz",
+		});
+
+		await this.thread.join();
 
 		const collector = reply.createMessageComponentCollector({
 			componentType: ComponentType.StringSelect,
@@ -47,7 +57,7 @@ class AZ {
 						.reply("⏳ Loading...")
 						.catch(console.error);
 				}
-				await this.ask(interaction, parseInt(interaction.values[0]));
+				await this.ask(parseInt(interaction.values[0]));
 			}
 		});
 	}
@@ -57,27 +67,35 @@ class AZ {
 	async update() {
 		const buffer = await sharp(Buffer.from(this.toSVG())).png().toBuffer();
 
+		const options = this.items
+			.filter(a => a.color === "white")
+			.map((item, i) =>
+				new StringSelectMenuOptionBuilder()
+					.setLabel(`Ask - ${i + 1}`)
+					.setValue(`${i + 1}`)
+			);
+
+		const half1 = options.slice(0, Math.floor(options.length / 2));
+		const half2 = options.slice(Math.floor(options.length / 2));
+
 		return await this.interaction.editReply({
 			content: "",
 			files: [new AttachmentBuilder(buffer, {name: "az.png"})],
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder()
-						.addOptions(
-							this.items
-								.filter(a => a.color === "white")
-								.map((item, i) =>
-									new StringSelectMenuOptionBuilder()
-										.setLabel(`Ask - ${i + 1}`)
-										.setValue(`${i + 1}`)
-								)
-								.slice(0, 25)
-						)
-						.setCustomId("az")
+						.addOptions(half1)
+						.setCustomId(`az-${this.player}-1`)
 						.setMaxValues(1)
 						.setMinValues(1)
-						.setPlaceholder("Select a hexagon")
-				),
+						.setPlaceholder("Select a hexagon here..."),
+					new StringSelectMenuBuilder()
+						.addOptions(half2)
+						.setCustomId(`az-${this.player}-2`)
+						.setMaxValues(1)
+						.setMinValues(1)
+						.setPlaceholder("Or here...")
+				)
 			],
 		});
 	}
@@ -86,13 +104,13 @@ class AZ {
 		this.player = (this.player + 1) % 2;
 	}
 
-	async ask(outer: StringSelectMenuInteraction, n: number) {
+	async ask(n: number) {
 		const player = this.players[this.player];
 		const [quiz] = await fetch(
 			"https://the-trivia-api.com/v2/questions/?limit=1"
 		).then(res => res.json());
 
-		const reply = await outer.editReply({
+		const reply = await this.thread.send({
 			content: `@${player.username}#${player.tag}, **${quiz.question.text}**`,
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -119,7 +137,7 @@ class AZ {
 
 		collector.on("collect", async interaction => {
 			const edit = interaction.replied ? "editReply" : "reply";
-			if (interaction.user.id !== outer.user.id) {
+			if (interaction.user.id !== this.players[this.player].id) {
 				await interaction[edit]({
 					content: "It's not your turn!",
 				});
