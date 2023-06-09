@@ -51,9 +51,9 @@ export class Bot {
 		const rest = new REST({version: "9"}).setToken(config.TOKEN);
 
 		for (const file of await readdir(join(__dirname, "..", "commands"))) {
-			const command = require(join(__dirname, "..", "commands", file));
+			const command: SlashCommand = require(join(__dirname, "..", "commands", file));
 
-			this.slashCommands.push(command.build(file));
+			this.slashCommands.push(command.build(file.slice(0, -3)));
 			this.slashCommandsMap.set(file, command);
 		}
 
