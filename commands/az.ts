@@ -15,21 +15,11 @@ import AZ from "../structs/AZ";
 export default {
 	data: new SlashCommandBuilder()
 		.setDescription("Starts an AZ quiz")
-		.setName("az-quiz"),
+		.setName("az-quiz")
+        .addUserOption(option => option.setName("user").setDescription("The oponent to play against").setRequired(true)),
 	async execute(interaction: ChatInputCommandInteraction) {
 		await interaction.reply("⏳ Loading...").catch(console.error);
-		const az = new AZ();
-
-		async function update() {
-			const buffer = await sharp(Buffer.from(az.toSVG())).png().toBuffer();
-
-			await interaction.editReply({
-				content: "AZ plane",
-				files: [new AttachmentBuilder(buffer, {name: "az.png"})],
-			});
-		}
-
-		await update();
+		const az = new AZ(interaction);
 
 		const actions = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			new ButtonBuilder()
@@ -38,39 +28,27 @@ export default {
 				.setStyle(ButtonStyle.Primary)
 		);
 
-		const reply2 = await interaction.editReply({
+		const reply = await interaction.editReply({
 			components: [actions],
 		});
 
-		const collector = reply2.createMessageComponentCollector({
+		const collector = reply.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 		});
 
 		collector.on("collect", async interaction => {
-			await interaction.reply("⏳ Loading...").catch(console.error);
-
-			const [quiz] = await fetch(
-				"https://the-trivia-api.com/v2/questions/?limit=1"
-			).then(res => res.json());
-
-			const reply = await interaction.editReply({
-				content: "📝 **" + quiz.question.text + "**",
+			const reply = await interaction.reply({
+				content: "Choose a number",
 				components: [
 					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 						new StringSelectMenuBuilder()
+							.setCustomId("az-quiz")
 							.addOptions(
-								[...quiz.incorrectAnswers, quiz.correctAnswer]
-									.sort(() => Math.random() - 0.5)
-									.map(answer =>
-										new StringSelectMenuOptionBuilder()
-											.setLabel(answer)
-											.setValue(answer)
-									)
+								az.items.filter(item => item.color === "white").map((item, i) => {
+									const number = `${i + 1}`;
+									return new StringSelectMenuOptionBuilder().setLabel(number).setValue(number);
+								})
 							)
-							.setCustomId("quiz")
-							.setMaxValues(1)
-							.setMinValues(1)
-							.setPlaceholder("Select an answer")
 					),
 				],
 			});
@@ -80,21 +58,7 @@ export default {
 			});
 
 			collector.on("collect", async interaction => {
-				await interaction.reply("⏳ Loading...").catch(console.error);
-
-				if (interaction.values[0] === quiz.correctAnswer) {
-					await interaction.followUp("✅ **Correct**");
-					az.set(3, "blue");
-				} else {
-					await interaction.followUp(
-						"❌ **Wrong!**. The correct answer was **" +
-							quiz.correctAnswer +
-							"**"
-					);
-					az.set(3, "black");
-				}
-
-				await update();
+				
 			});
 		});
 	},
