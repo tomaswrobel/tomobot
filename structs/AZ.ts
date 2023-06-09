@@ -25,29 +25,7 @@ class AZ {
 	}
 
 	async start() {
-		await this.interaction.reply("⏳ Loading...").catch(console.error);
-
-		const reply = await this.interaction.editReply({
-			components: [
-				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					new StringSelectMenuBuilder()
-						.addOptions(
-							this.items
-								.filter(a => a.color === "white")
-								.map((item, i) =>
-									new StringSelectMenuOptionBuilder()
-										.setLabel(`Ask - ${i + 1}`)
-										.setValue(`${i + 1}`)
-								)
-								.slice(0, 25)
-						)
-						.setCustomId("az")
-						.setMaxValues(1)
-						.setMinValues(1)
-						.setPlaceholder("Select a hexagon")
-				),
-			],
-		});
+		const reply = await this.update();
 
 		const collector = reply.createMessageComponentCollector({
 			componentType: ComponentType.StringSelect,
@@ -72,9 +50,28 @@ class AZ {
 	async update() {
 		const buffer = await sharp(Buffer.from(this.toSVG())).png().toBuffer();
 
-		await this.interaction.editReply({
+		return await this.interaction.editReply({
 			content: "",
 			files: [new AttachmentBuilder(buffer, {name: "az.png"})],
+			components: [
+				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+					new StringSelectMenuBuilder()
+						.addOptions(
+							this.items
+								.filter(a => a.color === "white")
+								.map((item, i) =>
+									new StringSelectMenuOptionBuilder()
+										.setLabel(`Ask - ${i + 1}`)
+										.setValue(`${i + 1}`)
+								)
+								.slice(0, 25)
+						)
+						.setCustomId("az")
+						.setMaxValues(1)
+						.setMinValues(1)
+						.setPlaceholder("Select a hexagon")
+				),
+			],
 		});
 	}
 
