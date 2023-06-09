@@ -78,9 +78,9 @@ class SlashCommand<O extends SlashCommandOptions[] = []> {
 		return builder;
 	}
 
-	async execute(interaction: ChatInputCommandInteraction) {
+	execute(interaction: ChatInputCommandInteraction) {
 		// @ts-expect-error - It is not possible to type this correctly
-		this.run(interaction, ...this.options.map(({type, name, required}) => interaction.options[`get${type}`](name, required)));
+		return this.run(interaction, ...this.options.map(({type, name, required}) => interaction.options[`get${type}`](name, required)));
 	}
 
 	async run(interaction: ChatInputCommandInteraction | ButtonInteraction, ...args: ExtractParams<O>) {

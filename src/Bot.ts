@@ -52,9 +52,10 @@ export class Bot {
 
 		for (const file of await readdir(join(__dirname, "..", "commands"))) {
 			const command: SlashCommand = require(join(__dirname, "..", "commands", file));
+			const name = file.split(".")[0];
 
-			this.slashCommands.push(command.build(file.slice(0, -3)));
-			this.slashCommandsMap.set(file, command);
+			this.slashCommands.push(command.build(name));
+			this.slashCommandsMap.set(name, command);
 		}
 
 		await rest.put(Routes.applicationCommands(this.client.user!.id), {
