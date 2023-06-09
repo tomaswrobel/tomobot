@@ -53,6 +53,11 @@ export class Bot {
 		for (const file of await readdir(join(__dirname, "..", "commands"))) {
 			const command: SlashCommand = require(join(__dirname, "..", "commands", file));
 
+			if (!command.build) {
+				console.log(file);
+				continue;
+			}
+
 			this.slashCommands.push(command.build(file.slice(0, -3)));
 			this.slashCommandsMap.set(file, command);
 		}
