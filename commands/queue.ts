@@ -92,6 +92,8 @@ export = new SlashCommand(
 		});
 
 		collector.on("collect", async interaction => {
+			await interaction.deferReply();
+			await interaction.deleteReply();
 			try {
 				if (interaction.id === "next") {
 					if (currentPage < embeds.length - 1) {

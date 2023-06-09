@@ -10,5 +10,11 @@ export = new SlashCommand(
 		} else {
 			yield "This command can only be used as a slash command";
 		}
+	},
+	{
+		type: "User",
+		description: "The opponent to challenge",
+		name: "user",
+		required: true,
 	}
 )

@@ -48,9 +48,9 @@ export = new SlashCommand(
 			});
 
 			if (interaction.values[0] === quiz.correctAnswer) {
-				await interaction.followUp("✅ **Correct**");
+				await interaction.reply("✅ **Correct**");
 			} else {
-				await interaction.followUp(`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
+				await interaction.reply(`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
 			}
 		});
 	}
