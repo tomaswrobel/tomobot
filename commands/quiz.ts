@@ -32,6 +32,7 @@ export default {
 										.setValue(answer)
 								)
 						)
+						.setCustomId("quiz")
 						.setMaxValues(1)
 						.setMinValues(1)
 						.setPlaceholder("Select an answer")
