@@ -38,6 +38,15 @@ class AZ {
 					ephemeral: true,
 				});
 			} else {
+				if (interaction.replied) {
+					await interaction
+						.editReply("⏳ Loading...")
+						.catch(console.error);
+				} else {
+					await interaction
+						.reply("⏳ Loading...")
+						.catch(console.error);
+				}
 				await this.ask(interaction, parseInt(interaction.values[0]));
 			}
 		});
@@ -48,7 +57,7 @@ class AZ {
 	async update() {
 		const buffer = await sharp(Buffer.from(this.toSVG())).png().toBuffer();
 
-		return await this.interaction[this.interaction.replied ? "editReply" : "reply"]({
+		return await this.interaction.editReply({
 			content: "",
 			files: [new AttachmentBuilder(buffer, {name: "az.png"})],
 			components: [
@@ -77,28 +86,23 @@ class AZ {
 		this.player = (this.player + 1) % 2;
 	}
 
-	async ask(interaction: StringSelectMenuInteraction, n: number) {
-		if (interaction.replied) {
-			await interaction.editReply("⏳ Loading...").catch(console.error);
-		} else {
-			await interaction.reply("⏳ Loading...").catch(console.error);
-		}
-
+	async ask(outer: StringSelectMenuInteraction, n: number) {
 		const player = this.players[this.player];
 		const [quiz] = await fetch(
 			"https://the-trivia-api.com/v2/questions/?limit=1"
 		).then(res => res.json());
 
-		const reply = await interaction.editReply({
+		const reply = await outer.editReply({
 			content: `@${player.username}#${player.tag}, **${quiz.question.text}**`,
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder()
 						.addOptions(
-							[...quiz.incorrectAnswers, quiz.correctAnswer].map(string => 
-								new StringSelectMenuOptionBuilder()
-									.setLabel(string)
-									.setValue(string)
+							[...quiz.incorrectAnswers, quiz.correctAnswer].map(
+								string =>
+									new StringSelectMenuOptionBuilder()
+										.setLabel(string)
+										.setValue(string)
 							)
 						)
 						.setCustomId("az-question")
@@ -114,26 +118,33 @@ class AZ {
 		});
 
 		collector.on("collect", async interaction => {
-			if (interaction.user.id !== this.players[this.player].id) {
+			const edit =
+				interaction[interaction.replied ? "editReply" : "reply"];
+			if (interaction.user.id !== outer.user.id) {
+				await edit({
+					content: "It's not your turn!",
+				});
 				return;
 			}
 
-			await interaction.reply("⏳ Loading...").catch(console.error);
-
 			if (interaction.values[0] === quiz.correctAnswer) {
-				await interaction.followUp("✅ **Correct**");
+				await edit("✅ **Correct**");
 				this.set(n, this.player === 0 ? "orange" : "blue");
 			} else {
-				await interaction.followUp(
+				await edit(
 					"❌ **Wrong!**. The correct answer was **" +
 						quiz.correctAnswer +
 						"**"
 				);
 				this.set(n, "black");
 			}
+			
+			await reply.edit({
+				components: [],
+			});
 
-			await this.update();
 			this.next();
+			await this.update();
 		});
 	}
 

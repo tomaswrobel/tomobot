@@ -18,6 +18,7 @@ export default {
 		.setName("az-quiz")
         .addUserOption(option => option.setName("user").setDescription("The oponent to play against").setRequired(true)),
 	async execute(interaction: ChatInputCommandInteraction) {
+		await interaction.reply("Starting AZ quiz...");
 		await new AZ(interaction).start();
 	},
 };
