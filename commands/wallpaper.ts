@@ -5,9 +5,15 @@ import {
 } from "discord.js";
 import {config} from "../utils/config";
 import {createApi} from "unsplash-js";
+import {name} from "../package.json";
 
 const unsplash = createApi({
 	accessKey: config.UNSPLASH_ACCESS_KEY,
+});
+
+const params = new URLSearchParams({
+	utm_source: name,
+	utm_medium: "referral",
 });
 
 async function getPhoto(query: string | null) {
@@ -44,13 +50,20 @@ export default {
 		.addStringOption(option =>
 			option
 				.setName("query")
-				.setDescription("Search query. If empty, returns a random photo")
+				.setDescription(
+					"Search query. If empty, returns a random photo"
+				)
 				.setRequired(false)
 		)
 		.setName("wallpaper"),
 	async execute(interaction: ChatInputCommandInteraction) {
 		const query = interaction.options.getString("query", false);
-		await interaction.reply(`Searching for ${query}...`);
+
+		if (query) {
+			await interaction.reply(`Searching for ${query}...`);
+		} else {
+			await interaction.reply("Displaying a random photo...");
+		}
 
 		try {
 			var photo = await getPhoto(query);
@@ -59,13 +72,11 @@ export default {
 		}
 
 		const embed = new EmbedBuilder()
-			.setTitle(photo.alt_description || photo.description)
+			.setDescription(photo.description)
 			.setAuthor({
 				name: photo.user.name,
 				iconURL: photo.user.profile_image.small,
-				url:
-					photo.user.links.html +
-					"?utm_source=tomobot&utm_medium=referral",
+				url: `${photo.user.links.html}?${params}`,
 			})
 			.setColor(photo.color as `#${string}` | null)
 			.setFooter({

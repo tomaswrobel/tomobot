@@ -18,6 +18,7 @@ import {i18n} from "../utils/i18n";
 import {MissingPermissionsException} from "../utils/MissingPermissionsException";
 import {MusicQueue} from "./MusicQueue";
 import Console from "./Console";
+import {version} from "../package.json";
 
 export class Bot {
 	public readonly prefix = config.PREFIX;
@@ -31,7 +32,7 @@ export class Bot {
 		this.client.login(config.TOKEN);
 
 		this.client.on("ready", () => {
-			console.log(`${this.client.user!.username} ready!`);
+			console.log(`${this.client.user!.username} v${version} ready!`);
 
 			this.registerSlashCommands();
 		});
