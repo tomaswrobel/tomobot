@@ -66,7 +66,7 @@ class SlashCommand<O extends SlashCommandOptions[] = []> {
 			builder.setDescription(this.data.description);
 		}
 
-		for (const {type, name, description, required} of this.options) {
+		for (const {type, name, description, required = false} of this.options) {
 			builder[`add${type}Option`]((option: any) =>
 				option
 					.setName(name)
