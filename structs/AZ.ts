@@ -50,7 +50,7 @@ class AZ {
 	async update() {
 		const buffer = await sharp(Buffer.from(this.toSVG())).png().toBuffer();
 
-		return await this.interaction.editReply({
+		return await this.interaction[this.interaction.replied ? "editReply" : "reply"]({
 			content: "",
 			files: [new AttachmentBuilder(buffer, {name: "az.png"})],
 			components: [
