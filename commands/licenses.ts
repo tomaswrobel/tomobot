@@ -12,12 +12,7 @@ export = new SlashCommand({description: "See open-source licenses"}, async funct
 		const json = await import(`../node_modules/${name}/package.json`);
 
 		let description = json.description || "No description provided.";
-
-		if ("repository" in json) {
-			description += `\n\n[View on GitHub](${json.repository})`;
-		} else {
-			description += `\n\n[View on npm](https://npmjs.com/package/${name})`;
-		}
+		description += `\n\n[View on npm](https://npmjs.com/package/${name})`;
 
 		embed.addFields({
 			name,
