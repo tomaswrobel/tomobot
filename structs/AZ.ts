@@ -41,8 +41,6 @@ class AZ {
 				await this.ask(interaction, parseInt(interaction.values[0]));
 			}
 		});
-
-		await this.update();
 	}
 
 	player = 0;
