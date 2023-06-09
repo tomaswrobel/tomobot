@@ -39,6 +39,7 @@ class AZ {
 										.setLabel(`Ask - ${i + 1}`)
 										.setValue(`${i + 1}`)
 								)
+								.slice(0, 25)
 						)
 						.setCustomId("az")
 						.setMaxValues(1)
@@ -59,7 +60,7 @@ class AZ {
 					ephemeral: true,
 				});
 			} else {
-				this.ask(interaction, parseInt(interaction.values[0]));
+				await this.ask(interaction, parseInt(interaction.values[0]));
 			}
 		});
 
@@ -72,6 +73,7 @@ class AZ {
 		const buffer = await sharp(Buffer.from(this.toSVG())).png().toBuffer();
 
 		await this.interaction.editReply({
+			content: "",
 			files: [new AttachmentBuilder(buffer, {name: "az.png"})],
 		});
 	}
@@ -94,6 +96,22 @@ class AZ {
 
 		const reply = await interaction.editReply({
 			content: `@${player.username}#${player.tag}, **${quiz.question.text}**`,
+			components: [
+				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+					new StringSelectMenuBuilder()
+						.addOptions(
+							[...quiz.incorrectAnswers, quiz.correctAnswer].map(string => 
+								new StringSelectMenuOptionBuilder()
+									.setLabel(string)
+									.setValue(string)
+							)
+						)
+						.setCustomId("az-question")
+						.setMaxValues(1)
+						.setMinValues(1)
+						.setPlaceholder("Select an answer")
+				),
+			],
 		});
 
 		const collector = reply.createMessageComponentCollector({
