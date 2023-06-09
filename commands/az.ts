@@ -22,13 +22,15 @@ export default {
 		const az = new AZ();
 
 		async function update() {
-			const buffer = await sharp(Buffer.from(az.toSVG()))
+            const svg = az.toSVG();
+            console.log(svg);
+			const buffer = await sharp(Buffer.from(svg))
 				.png()
 				.toBuffer();
 			new AttachmentBuilder(buffer, {
 				name: "az.png",
 				description: "AZ Plane",
-			});
+			})
 			const embed = new EmbedBuilder()
 				.setTitle("AZ Quiz")
 				.setImage("attachment://az.png");

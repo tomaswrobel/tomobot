@@ -178,7 +178,7 @@ class AZ {
 	];
 
     toSVG() {
-        return `<svg viewBox="0 0 375.104 342.007" xmlns="http://www.w3.org/2000/svg/">${this.items.reduce((a, b, i) => `${a}<path d="${b.d}" fill="${b.color}" stroke="#000" /><text x="${b.x}" y="${b.y}" font-family="sans-serif" dominant-baseline="central" text-anchor="middle">${b.color === "white" ? i + 1 : ""}</text>`, "")}</svg>`
+        return `<svg viewBox="0 0 375.104 342.007" xmlns="http://www.w3.org/2000/svg">${this.items.reduce((a, b, i) => `${a}<path d="${b.d}" fill="${b.color}" stroke="#000" /><text x="${b.x}" y="${b.y}" font-family="sans-serif" dominant-baseline="central" text-anchor="middle">${b.color === "white" ? i + 1 : ""}</text>`, "")}</svg>`
     }
 
     set(n: number, color: "orange" | "blue" | "black") {
