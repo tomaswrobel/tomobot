@@ -48,15 +48,8 @@ class AZ {
 					ephemeral: true,
 				});
 			} else {
-				if (interaction.replied) {
-					await interaction
-						.editReply("⏳ Loading...")
-						.catch(console.error);
-				} else {
-					await interaction
-						.reply("⏳ Loading...")
-						.catch(console.error);
-				}
+				await interaction.deferReply();
+				await interaction.deleteReply();
 				await this.ask(parseInt(interaction.values[0]));
 			}
 		});
@@ -89,13 +82,15 @@ class AZ {
 						.setMaxValues(1)
 						.setMinValues(1)
 						.setPlaceholder("Select a hexagon here..."),
+				),
+				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder()
 						.addOptions(half2)
 						.setCustomId(`az-${this.player}-2`)
 						.setMaxValues(1)
 						.setMinValues(1)
 						.setPlaceholder("Or here...")
-				)
+				),
 			],
 		});
 	}
