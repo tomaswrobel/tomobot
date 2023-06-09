@@ -27,7 +27,7 @@ type SlashCommandOptions = {
 	name: string;
 	type: keyof OptionsMap;
 	required?: boolean;
-	description?: string;
+	description: string;
 };
 
 type ExtractParams<O extends SlashCommandOptions[]> = [
@@ -66,7 +66,7 @@ class SlashCommand<O extends SlashCommandOptions[] = []> {
 			builder.setDescription(this.data.description);
 		}
 
-		for (const {type, name, description = null, required} of this.options) {
+		for (const {type, name, description, required} of this.options) {
 			builder[`add${type}Option`]((option: any) =>
 				option
 					.setName(name)

@@ -58,5 +58,6 @@ export = new SlashCommand(
 	{
 		type: "Integer",
 		name: "volume",
+		description: i18n.__("volume.args.volume"),
 	}
 );
