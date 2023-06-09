@@ -1,8 +1,6 @@
 import {DiscordGatewayAdapterCreator, joinVoiceChannel} from "@discordjs/voice";
 import {
-	ChatInputCommandInteraction,
 	PermissionsBitField,
-	SlashCommandBuilder,
 	TextChannel,
 } from "discord.js";
 import {bot} from "../index";

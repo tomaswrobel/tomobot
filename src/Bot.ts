@@ -1,6 +1,5 @@
 import {
 	ApplicationCommandDataResolvable,
-	ChatInputCommandInteraction,
 	Client,
 	Collection,
 	Events,
@@ -52,7 +51,7 @@ export class Bot {
 		const rest = new REST({version: "9"}).setToken(config.TOKEN);
 
 		for (const file of await readdir(join(__dirname, "..", "commands"))) {
-			const command: SlashCommand = await import(join(__dirname, "..", "commands", file));
+			const command = require(join(__dirname, "..", "commands", file));
 
 			this.slashCommands.push(command.build(file));
 			this.slashCommandsMap.set(file, command);

@@ -1,4 +1,3 @@
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
 import {i18n} from "../utils/i18n";
 import SlashCommand from "../src/SlashCommand";
 

@@ -1,4 +1,4 @@
-import {ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder} from "discord.js";
+import {EmbedBuilder} from "discord.js";
 import {config} from "../utils/config";
 import {createApi} from "unsplash-js";
 import {name} from "../package.json";
