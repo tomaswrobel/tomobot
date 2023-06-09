@@ -61,12 +61,12 @@ class AZ {
 		const buffer = await sharp(Buffer.from(this.toSVG())).png().toBuffer();
 
 		const options = this.items
-			.filter(a => a.color === "white")
 			.map((item, i) =>
 				new StringSelectMenuOptionBuilder()
 					.setLabel(`Ask - ${i + 1}`)
 					.setValue(`${i + 1}`)
-			);
+			)
+			.filter((_, i) => this.items[i].color === "white");
 
 		const half1 = options.slice(0, Math.floor(options.length / 2));
 		const half2 = options.slice(Math.floor(options.length / 2));
@@ -81,7 +81,7 @@ class AZ {
 						.setCustomId(`az-${this.player}-1`)
 						.setMaxValues(1)
 						.setMinValues(1)
-						.setPlaceholder("Select a hexagon here..."),
+						.setPlaceholder("Select a hexagon here...")
 				),
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder()
