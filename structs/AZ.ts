@@ -118,27 +118,26 @@ class AZ {
 		});
 
 		collector.on("collect", async interaction => {
-			const edit =
-				interaction[interaction.replied ? "editReply" : "reply"];
+			const edit = interaction.replied ? "editReply" : "reply";
 			if (interaction.user.id !== outer.user.id) {
-				await edit({
+				await interaction[edit]({
 					content: "It's not your turn!",
 				});
 				return;
 			}
 
 			if (interaction.values[0] === quiz.correctAnswer) {
-				await edit("✅ **Correct**");
+				await interaction[edit]("✅ **Correct**");
 				this.set(n, this.player === 0 ? "orange" : "blue");
 			} else {
-				await edit(
+				await interaction[edit](
 					"❌ **Wrong!**. The correct answer was **" +
 						quiz.correctAnswer +
 						"**"
 				);
 				this.set(n, "black");
 			}
-			
+
 			await reply.edit({
 				components: [],
 			});
