@@ -13,11 +13,7 @@ import sharp from "sharp";
 class AZHex {
 	public color = "white";
 
-	constructor(
-		public d: string,
-		public x: number,
-		public y: number
-	) {}
+	constructor(public d: string, public x: number, public y: number) {}
 }
 
 class AZ {
@@ -34,15 +30,22 @@ class AZ {
 		const reply = await this.interaction.editReply({
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					new StringSelectMenuBuilder().addOptions(
-						this.items.filter(a => a.color === "white").map((item, i) =>
-							new StringSelectMenuOptionBuilder()
-								.setLabel(`Ask - ${i + 1}`)
-								.setValue(`${i + 1}`)
+					new StringSelectMenuBuilder()
+						.addOptions(
+							this.items
+								.filter(a => a.color === "white")
+								.map((item, i) =>
+									new StringSelectMenuOptionBuilder()
+										.setLabel(`Ask - ${i + 1}`)
+										.setValue(`${i + 1}`)
+								)
 						)
-					)
-				)
-			]
+						.setCustomId("az")
+						.setMaxValues(1)
+						.setMinValues(1)
+						.setPlaceholder("Select a hexagon")
+				),
+			],
 		});
 
 		const collector = reply.createMessageComponentCollector({
@@ -101,7 +104,7 @@ class AZ {
 			if (interaction.user.id !== this.players[this.player].id) {
 				return;
 			}
-			
+
 			await interaction.reply("⏳ Loading...").catch(console.error);
 
 			if (interaction.values[0] === quiz.correctAnswer) {
