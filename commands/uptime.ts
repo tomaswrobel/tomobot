@@ -1,12 +1,12 @@
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
 import {bot} from "../index";
+import SlashCommand from "../src/SlashCommand";
 import {i18n} from "../utils/i18n";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setName("uptime")
-		.setDescription(i18n.__("uptime.description")),
-	execute(interaction: ChatInputCommandInteraction) {
+export = new SlashCommand(
+	{
+		description: i18n.__("uptime.description"),
+	},
+	async function* () {
 		let seconds = Math.floor(bot.client.uptime! / 1000);
 		let minutes = Math.floor(seconds / 60);
 		let hours = Math.floor(minutes / 60);
@@ -16,15 +16,11 @@ export default {
 		minutes %= 60;
 		hours %= 24;
 
-		return interaction
-			.reply({
-				content: i18n.__mf("uptime.result", {
-					days: days,
-					hours: hours,
-					minutes: minutes,
-					seconds: seconds,
-				}),
-			})
-			.catch(console.error);
-	},
-};
+		yield i18n.__mf("uptime.result", {
+			days: days,
+			hours: hours,
+			minutes: minutes,
+			seconds: seconds,
+		});
+	}
+);

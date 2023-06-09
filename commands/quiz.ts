@@ -1,24 +1,21 @@
 import {
 	ActionRowBuilder,
-	ChatInputCommandInteraction,
 	ComponentType,
-	SlashCommandBuilder,
 	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
+import SlashCommand from "../src/SlashCommand";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setDescription("Starts a quiz")
-		.setName("quiz"),
-	async execute(interaction: ChatInputCommandInteraction) {
-		await interaction.reply("⏳ Loading...").catch(console.error);
+export = new SlashCommand(
+	{
+		description: "Starts a quiz",
+	},
+	async function* () {
+		yield "⏳ Loading...";
 
-		const [quiz] = await fetch(
-			"https://the-trivia-api.com/v2/questions/?limit=1"
-		).then(res => res.json());
+		const [quiz] = await fetch("https://the-trivia-api.com/v2/questions/?limit=1").then(res => res.json());
 
-		const reply = await interaction.followUp({
+		yield {
 			content: "📝 **" + quiz.question.text + "**",
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -27,9 +24,7 @@ export default {
 							[...quiz.incorrectAnswers, quiz.correctAnswer]
 								.sort(() => Math.random() - 0.5)
 								.map(answer =>
-									new StringSelectMenuOptionBuilder()
-										.setLabel(answer)
-										.setValue(answer)
+									new StringSelectMenuOptionBuilder().setLabel(answer).setValue(answer)
 								)
 						)
 						.setCustomId("quiz")
@@ -38,24 +33,25 @@ export default {
 						.setPlaceholder("Select an answer")
 				),
 			],
-		});
+		};
+
+		const reply = await this.fetchReply();
 
 		const collector = reply.createMessageComponentCollector({
 			componentType: ComponentType.StringSelect,
+			filter: i => i.user.id === this.user.id,
 		});
 
-		collector.on("collect", async interaction => {
-			await interaction.update({
+		collector.once("collect", async interaction => {
+			await reply.edit({
 				components: [],
 			});
 
 			if (interaction.values[0] === quiz.correctAnswer) {
 				await interaction.followUp("✅ **Correct**");
 			} else {
-				await interaction.followUp(
-					`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`
-				);
+				await interaction.followUp(`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
 			}
 		});
-	},
-};
+	}
+);

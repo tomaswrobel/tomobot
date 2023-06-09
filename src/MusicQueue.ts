@@ -307,17 +307,17 @@ export class MusicQueue {
 				case "skip":
 					await this.bot.slashCommandsMap
 						.get("skip")!
-						.execute(interaction);
+						.run(interaction);
 					break;
 				case "pause":
 					if (this.player.state.status == AudioPlayerStatus.Playing) {
 						await this.bot.slashCommandsMap
 							.get("pause")!
-							.execute(interaction);
+							.run(interaction);
 					} else {
 						await this.bot.slashCommandsMap
 							.get("resume")!
-							.execute(interaction);
+							.run(interaction);
 					}
 					break;
 				case "mute":
@@ -390,18 +390,18 @@ export class MusicQueue {
 				case "loop":
 					await this.bot.slashCommandsMap
 						.get("loop")!
-						.execute(interaction);
+						.run(interaction);
 					break;
 				case "shuffle":
 					await this.bot.slashCommandsMap
 						.get("shuffle")!
-						.execute(interaction);
+						.run(interaction);
 					break;
 
 				case "stop":
 					await this.bot.slashCommandsMap
 						.get("stop")!
-						.execute(interaction);
+						.run(interaction);
 					collector.stop();
 					break;
 			}

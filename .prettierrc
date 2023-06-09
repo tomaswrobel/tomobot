@@ -2,5 +2,6 @@
     "useTabs": true,
     "tabWidth": 4,
     "bracketSpacing": false,
-    "arrowParens": "avoid"
+    "arrowParens": "avoid",
+    "printWidth": 112
 }

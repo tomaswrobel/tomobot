@@ -1,11 +1,8 @@
-import {
-	ChatInputCommandInteraction,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from "discord.js";
+import {ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder} from "discord.js";
 import {config} from "../utils/config";
 import {createApi} from "unsplash-js";
 import {name} from "../package.json";
+import SlashCommand from "../src/SlashCommand";
 
 const unsplash = createApi({
 	accessKey: config.UNSPLASH_ACCESS_KEY,
@@ -44,31 +41,18 @@ async function getPhoto(query: string | null) {
 	}
 }
 
-export default {
-	data: new SlashCommandBuilder()
-		.setDescription("Searches for a wallpaper")
-		.addStringOption(option =>
-			option
-				.setName("query")
-				.setDescription(
-					"Search query. If empty, returns a random photo"
-				)
-				.setRequired(false)
-		)
-		.setName("wallpaper"),
-	async execute(interaction: ChatInputCommandInteraction) {
-		const query = interaction.options.getString("query", false);
-
-		if (query) {
-			await interaction.reply(`Searching for ${query}...`);
-		} else {
-			await interaction.reply("Displaying a random photo...");
-		}
+export = new SlashCommand(
+	{
+		description: "Searches for a wallpaper",
+	},
+	async function* (query) {
+		yield query ? `Searching for ${query}...` : "Displaying a random photo...";
 
 		try {
 			var photo = await getPhoto(query);
 		} catch (error: any) {
-			return interaction.editReply(String(error));
+			yield String(error);
+			return;
 		}
 
 		const embed = new EmbedBuilder()
@@ -84,8 +68,13 @@ export default {
 			})
 			.setImage(photo.urls.regular);
 
-		return interaction.editReply({
+		return yield {
 			embeds: [embed],
-		});
+		};
 	},
-};
+	{
+		name: "query",
+		description: "Search query. If empty, returns a random photo",
+		type: "String",
+	}
+);

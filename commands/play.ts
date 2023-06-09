@@ -6,134 +6,110 @@ import {
 	TextChannel,
 } from "discord.js";
 import {bot} from "../index";
-import {MusicQueue} from "../structs/MusicQueue";
-import {Song} from "../structs/Song";
+import {MusicQueue} from "../src/MusicQueue";
+import {Song} from "../src/Song";
 import {i18n} from "../utils/i18n";
 import {playlistPattern} from "../utils/patterns";
+import SlashCommand from "../src/SlashCommand";
+import playlist from "./playlist";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setName("play")
-		.setDescription(i18n.__("play.description"))
-		.addStringOption(option =>
-			option
-				.setName("song")
-				.setDescription("The song you want to play")
-				.setRequired(true)
-		),
-	cooldown: 3,
-	permissions: [
-		PermissionsBitField.Flags.Connect,
-		PermissionsBitField.Flags.Speak,
-		PermissionsBitField.Flags.AddReactions,
-		PermissionsBitField.Flags.ManageMessages,
-	],
-	async execute(interaction: ChatInputCommandInteraction, input: string) {
-		let argSongName = interaction.options.getString("song");
-		if (!argSongName) argSongName = input;
-
-		const guildMember = interaction.guild!.members.cache.get(
-			interaction.user.id
-		);
+export = new SlashCommand(
+	{
+		description: i18n.__("play.description"),
+		permissions: [
+			PermissionsBitField.Flags.Connect,
+			PermissionsBitField.Flags.Speak,
+			PermissionsBitField.Flags.ManageMessages,
+		],
+		cooldown: 3,
+	},
+	async function* (url) {
+		const guildMember = this.guild!.members.cache.get(this.user.id);
 		const {channel} = guildMember!.voice;
 
-		if (!channel)
-			return interaction
-				.reply({
-					content: i18n.__("play.errorNotChannel"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (!channel) {
+			yield {
+				content: i18n.__("play.errorNotChannel"),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		const queue = bot.queues.get(interaction.guild!.id);
+		const queue = bot.queues.get(this.guild!.id);
 
-		if (queue && channel.id !== queue.connection.joinConfig.channelId)
-			return interaction
-				.reply({
-					content: i18n.__mf("play.errorNotInSameChannel", {
-						user: bot.client.user!.username,
-					}),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (queue && channel.id !== queue.connection.joinConfig.channelId) {
+			yield {
+				content: i18n.__mf("play.errorNotInSameChannel", {
+					user: bot.client.user!.username,
+				}),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		if (!argSongName)
-			return interaction
-				.reply({
-					content: i18n.__mf("play.usageReply", {prefix: bot.prefix}),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (!url) {
+			yield {
+				content: i18n.__mf("play.usagesReply", {prefix: bot.prefix}),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		const url = argSongName;
-
-		if (interaction.replied)
-			await interaction.editReply("⏳ Loading...").catch(console.error);
-		else await interaction.reply("⏳ Loading...");
+		yield "⏳ Loading...";
 
 		// Start the playlist if playlist url was provided
 		if (playlistPattern.test(url)) {
-			await interaction
-				.editReply("🔗 Link is playlist")
-				.catch(console.error);
-
-			return bot.slashCommandsMap.get("playlist")!.execute(interaction);
+			yield "🔗 Link is playlist";
+			await playlist.run(this, url);
+			return;
 		}
 
-		let song;
-
 		try {
-			song = await Song.from(url, url);
+			var song = await Song.from(url, url);
 		} catch (error: any) {
-			if (error.name == "NoResults")
-				return interaction
-					.reply({
-						content: i18n.__mf("play.errorNoResults", {
-							url: `<${url}>`,
-						}),
-						ephemeral: true,
-					})
-					.catch(console.error);
-			if (error.name == "InvalidURL")
-				return interaction
-					.reply({
-						content: i18n.__mf("play.errorInvalidURL", {
-							url: `<${url}>`,
-						}),
-						ephemeral: true,
-					})
-					.catch(console.error);
+			if (error.name == "NoResults") {
+				yield {
+					content: i18n.__mf("play.errorNoResults", {
+						url: `<${url}>`,
+					}),
+					ephemeral: true,
+				};
+				return;
+			}
+			if (error.name == "InvalidURL") {
+				yield {
+					content: i18n.__mf("play.errorInvalidURL", {
+						url: `<${url}>`,
+					}),
+					ephemeral: true,
+				};
+				return;
+			}
 
 			console.error(error);
-			if (interaction.replied)
-				return await interaction
-					.editReply({content: i18n.__("common.errorCommand")})
-					.catch(console.error);
-			else
-				return interaction
-					.reply({
-						content: i18n.__("common.errorCommand"),
-						ephemeral: true,
-					})
-					.catch(console.error);
+			yield {
+				content: i18n.__("common.errorCommand"),
+				ephemeral: true,
+			};
+			return;
 		}
 
 		if (queue) {
 			queue.enqueue(song);
 
-			return (interaction.channel as TextChannel)
+			return this.channel!
 				.send({
 					content: i18n.__mf("play.queueAdded", {
 						title: song.title,
-						author: interaction.user.id,
+						author: this.user.id,
 					}),
 				})
 				.catch(console.error);
 		}
 
 		const newQueue = new MusicQueue({
-			interaction,
-			textChannel: interaction.channel! as TextChannel,
+			interaction: this,
+			textChannel: this.channel! as TextChannel,
 			connection: joinVoiceChannel({
 				channelId: channel.id,
 				guildId: channel.guild.id,
@@ -142,9 +118,15 @@ export default {
 			}),
 		});
 
-		bot.queues.set(interaction.guild!.id, newQueue);
-
+		bot.queues.set(this.guild!.id, newQueue);
 		newQueue.enqueue(song);
-		interaction.deleteReply().catch(console.error);
+
+		yield SlashCommand.DELETE;
 	},
-};
+	{
+		type: "String",
+		description: i18n.__("play.args.song"),
+		name: "song",
+		required: true,
+	}
+);

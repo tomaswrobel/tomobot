@@ -17,6 +17,7 @@
         "types": [
             "node"
         ],
-        "strictPropertyInitialization": false
+        "strictPropertyInitialization": false,
+        "strictFunctionTypes": false
     }
 }

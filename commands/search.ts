@@ -1,55 +1,43 @@
 import {
 	ActionRowBuilder,
-	ChatInputCommandInteraction,
-	SlashCommandBuilder,
 	StringSelectMenuBuilder,
 	StringSelectMenuInteraction,
 } from "discord.js";
 import youtube, {Video} from "youtube-sr";
-import {bot} from "..";
 import {i18n} from "../utils/i18n";
+import SlashCommand from "../src/SlashCommand";
+import play from "./play";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setName("search")
-		.setDescription(i18n.__("search.description"))
-		.addStringOption(option =>
-			option
-				.setName("query")
-				.setDescription(i18n.__("search.optionQuery"))
-				.setRequired(true)
-		),
-	async execute(interaction: ChatInputCommandInteraction) {
-		const query = interaction.options.getString("query", true);
-		const member = interaction.guild!.members.cache.get(
-			interaction.user.id
-		);
+export = new SlashCommand(
+	{
+		description: i18n.__("search.description"),
+	},
+	async function* (search) {
+		const member = this.guild!.members.cache.get(this.user.id);
 
-		if (!member?.voice.channel)
-			return interaction
-				.reply({
-					content: i18n.__("search.errorNotChannel"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (!member?.voice.channel) {
+			yield {
+				content: i18n.__("search.errorNotChannel"),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		const search = query;
+		yield "⏳ Searching...";
 
-		await interaction.reply("⏳ Loading...").catch(console.error);
-
-		let results: Video[] = [];
+		const results: Video[] = [];
 
 		try {
-			results = await youtube.search(search, {limit: 10, type: "video"});
+			results.push(...(await youtube.search(search, {limit: 10, type: "video"})));
 		} catch (error: any) {
 			console.error(error);
 
-			interaction
-				.editReply({content: i18n.__("common.errorCommand")})
-				.catch(console.error);
+			yield i18n.__("common.errorCommand");
 		}
 
-		if (!results) return;
+		if (!results.length) {
+			return;
+		}
 
 		const options = results!.map(video => {
 			return {
@@ -58,45 +46,41 @@ export default {
 			};
 		});
 
-		const row =
-			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-				new StringSelectMenuBuilder()
-					.setCustomId("search-select")
-					.setPlaceholder("Nothing selected")
-					.setMinValues(1)
-					.setMaxValues(10)
-					.addOptions(options)
-			);
+		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+			new StringSelectMenuBuilder()
+				.setCustomId("search-select")
+				.setPlaceholder("Nothing selected")
+				.setMinValues(1)
+				.setMaxValues(10)
+				.addOptions(options)
+		);
 
-		const followUp = await interaction.followUp({
+		const followUp = await this.followUp({
 			content: "Choose songs to play",
 			components: [row],
 		});
 
-		followUp
-			.awaitMessageComponent({
-				time: 30000,
-			})
-			.then(selectInteraction => {
-				if (!(selectInteraction instanceof StringSelectMenuInteraction))
-					return;
+		const selectInteraction = await followUp.awaitMessageComponent({
+			time: 30000,
+		});
 
-				selectInteraction.update({
-					content: "⏳ Loading the selected songs...",
-					components: [],
-				});
+		if (!(selectInteraction instanceof StringSelectMenuInteraction)) return;
 
-				bot.slashCommandsMap
-					.get("play")!
-					.execute(interaction, selectInteraction.values[0])
-					.then(() => {
-						selectInteraction.values.slice(1).forEach(url => {
-							bot.slashCommandsMap
-								.get("play")!
-								.execute(interaction, url);
-						});
-					});
+		selectInteraction.update({
+			content: "⏳ Loading the selected songs...",
+			components: [],
+		});
+
+		await Promise.all(
+			selectInteraction.values.map(url => {
+				return play.run(this, url);
 			})
-			.catch(console.error);
+		);
 	},
-};
+	{
+		type: "String",
+		name: "query",
+		description: i18n.__("search.optionQuery"),
+		required: true,
+	}
+);

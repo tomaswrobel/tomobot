@@ -1,6 +1,6 @@
 {
 	"name": "tomobot",
-	"version": "1.0.3",
+	"version": "2.0.0",
 	"description": "Tomobot is an EvoBot-based discord bot.",
 	"main": "index.js",
 	"repository": "https://github.com/tomas-wrobel/tomobot",

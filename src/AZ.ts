@@ -1,7 +1,6 @@
 import {
 	ActionRowBuilder,
 	AttachmentBuilder,
-	StringSelectMenuInteraction,
 	ChatInputCommandInteraction,
 	ComponentType,
 	StringSelectMenuBuilder,
@@ -12,8 +11,7 @@ import {
 import sharp from "sharp";
 
 class AZHex {
-	public color = "white";
-
+	public color: "orange" | "blue" | "black" | "white" = "white";
 	constructor(public d: string, public x: number, public y: number) {}
 }
 
@@ -21,10 +19,7 @@ class AZ {
 	thread: AnyThreadChannel;
 
 	constructor(private interaction: ChatInputCommandInteraction) {
-		this.players = [
-			interaction.user,
-			interaction.options.getUser("user", true),
-		];
+		this.players = [interaction.user, interaction.options.getUser("user", true)];
 	}
 
 	async start() {
@@ -62,9 +57,7 @@ class AZ {
 
 		const options = this.items
 			.map((item, i) =>
-				new StringSelectMenuOptionBuilder()
-					.setLabel(`Ask - ${i + 1}`)
-					.setValue(`${i + 1}`)
+				new StringSelectMenuOptionBuilder().setLabel(`Ask - ${i + 1}`).setValue(`${i + 1}`)
 			)
 			.filter((_, i) => this.items[i].color === "white");
 
@@ -101,9 +94,7 @@ class AZ {
 
 	async ask(n: number) {
 		const player = this.players[this.player];
-		const [quiz] = await fetch(
-			"https://the-trivia-api.com/v2/questions/?limit=1"
-		).then(res => res.json());
+		const [quiz] = await fetch("https://the-trivia-api.com/v2/questions/?limit=1").then(res => res.json());
 
 		const reply = await this.thread.send({
 			content: `@${player.username}#${player.tag}, **${quiz.question.text}**`,
@@ -111,11 +102,8 @@ class AZ {
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder()
 						.addOptions(
-							[...quiz.incorrectAnswers, quiz.correctAnswer].map(
-								string =>
-									new StringSelectMenuOptionBuilder()
-										.setLabel(string)
-										.setValue(string)
+							[...quiz.incorrectAnswers, quiz.correctAnswer].map(string =>
+								new StringSelectMenuOptionBuilder().setLabel(string).setValue(string)
 							)
 						)
 						.setCustomId("az-question")
@@ -143,11 +131,7 @@ class AZ {
 				await interaction[edit]("✅ **Correct**");
 				this.set(n, this.player === 0 ? "orange" : "blue");
 			} else {
-				await interaction[edit](
-					"❌ **Wrong!**. The correct answer was **" +
-						quiz.correctAnswer +
-						"**"
-				);
+				await interaction[edit](`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
 				this.set(n, "black");
 			}
 
@@ -307,9 +291,7 @@ class AZ {
 	toSVG() {
 		return `<svg viewBox="0 0 375.104 342.007" xmlns="http://www.w3.org/2000/svg">${this.items.reduce(
 			(a, b, i) =>
-				`${a}<path d="${b.d}" fill="${
-					b.color
-				}" stroke="#000" /><text x="${b.x}" y="${
+				`${a}<path d="${b.d}" fill="${b.color}" stroke="#000" /><text x="${b.x}" y="${
 					b.y
 				}" font-family="sans-serif" dominant-baseline="central" text-anchor="middle">${
 					b.color === "white" ? i + 1 : ""

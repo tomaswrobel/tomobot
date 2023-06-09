@@ -1,27 +1,24 @@
-import {
-	ChatInputCommandInteraction,
-	EmbedBuilder,
-	SlashCommandBuilder,
-} from "discord.js";
+import {EmbedBuilder} from "discord.js";
 import {splitBar} from "string-progressbar";
 import {bot} from "../index";
 import {i18n} from "../utils/i18n";
+import SlashCommand from "../src/SlashCommand";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setName("nowplaying")
-		.setDescription(i18n.__("nowplaying.description")),
-	cooldown: 10,
-	execute(interaction: ChatInputCommandInteraction) {
-		const queue = bot.queues.get(interaction.guild!.id);
+export = new SlashCommand(
+	{
+		description: i18n.__("nowplaying.description"),
+		cooldown: 10,
+	},
+	async function* () {
+		const queue = bot.queues.get(this.guild!.id);
 
-		if (!queue || !queue.songs.length)
-			return interaction
-				.reply({
-					content: i18n.__("nowplaying.errorNotQueue"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (!queue || !queue.songs.length) {
+			yield {
+				content: i18n.__("nowplaying.errorNotQueue"),
+				ephemeral: true,
+			};
+			return;
+		}
 
 		const song = queue.songs[0];
 		const seek = queue.resource.playbackDuration / 1000;
@@ -59,6 +56,6 @@ export default {
 			});
 		}
 
-		return interaction.reply({embeds: [nowPlaying]});
-	},
-};
+		return yield {embeds: [nowPlaying]};
+	}
+);

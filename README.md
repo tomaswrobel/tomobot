@@ -42,12 +42,15 @@ Then commit and run!
 
 `/playlist linkin park meteora`
 
+- ❓ Start an AZ quiz
+
+`/az-quiz @oponent`
+
 - Now Playing (/np)
 - Queue system (/queue)
 - Loop / Repeat (/loop)
 - Shuffle (/shuffle)
 - Volume control (/volume)
-- Lyrics (/lyrics)
 - Pause (/pause)
 - Resume (/resume)
 - Skip (/skip)
@@ -58,9 +61,8 @@ Then commit and run!
 - Show bot uptime (/uptime)
 - Toggle pruning of bot messages (/pruning)
 - Help (/help)
-- Command Handler from [discordjs.guide](https://discordjs.guide/)
 - Media Controls via ~~Reactions~~ Discord buttons
-- Unsplash Wallpapers
+- Unsplash Wallpapers (/wallpaper)
 - Running TypeScript and JavaScript code
 
 ## 🌎 Locales
@@ -97,7 +99,9 @@ Currently available locales are:
 1. Button-based media control
 2. `delete` and `wallpaper` command
 3. Running JS and TS from message
-4. Quizzes
+4. AZ quiz (pyramid game)
+5. A quiz (single Q/A)
+6. Huge rewrite since v2
 
 ## LICENSE
 Original Author &copy; Erit Islami 2019

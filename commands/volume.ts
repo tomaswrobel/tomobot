@@ -1,70 +1,62 @@
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
 import {bot} from "../index";
 import {i18n} from "../utils/i18n";
 import {canModifyQueue} from "../utils/queue";
+import SlashCommand from "../src/SlashCommand";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setName("volume")
-		.setDescription(i18n.__("volume.description"))
-		.addIntegerOption(option =>
-			option
-				.setName("volume")
-				.setDescription(i18n.__("volume.description"))
-		),
-	execute(interaction: ChatInputCommandInteraction) {
-		const queue = bot.queues.get(interaction.guild!.id);
-		const guildMemer = interaction.guild!.members.cache.get(
-			interaction.user.id
-		);
-		const volumeArg = interaction.options.getInteger("volume");
+export = new SlashCommand(
+	{
+		description: i18n.__("volume.description"),
+	},
+	async function* (volumeArg) {
+		const queue = bot.queues.get(this.guild!.id);
+		const guildMemer = this.guild!.members.cache.get(this.user.id);
 
-		if (!queue)
-			return interaction
-				.reply({
-					content: i18n.__("volume.errorNotQueue"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (!queue) {
+			yield {
+				content: i18n.__("volume.errorNotQueue"),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		if (!canModifyQueue(guildMemer!))
-			return interaction
-				.reply({
-					content: i18n.__("volume.errorNotChannel"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (!canModifyQueue(guildMemer!)) {
+			yield {
+				content: i18n.__("volume.errorNotChannel"),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		if (!volumeArg || volumeArg === queue.volume)
-			return interaction
-				.reply({
-					content: i18n.__mf("volume.currentVolume", {
-						volume: queue.volume,
-					}),
-				})
-				.catch(console.error);
+		if (!volumeArg || volumeArg === queue.volume) {
+			yield i18n.__mf("volume.currentVolume", {
+				volume: queue.volume,
+			});
+			return;
+		}
 
-		if (isNaN(volumeArg))
-			return interaction
-				.reply({
-					content: i18n.__("volume.errorNotNumber"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (isNaN(volumeArg)) {
+			yield {
+				content: i18n.__("volume.errorNotNumber"),
+				ephemeral: true,
+			};
+			return;
+		}
 
-		if (Number(volumeArg) > 100 || Number(volumeArg) < 0)
-			return interaction
-				.reply({
-					content: i18n.__("volume.errorNotValid"),
-					ephemeral: true,
-				})
-				.catch(console.error);
+		if (volumeArg > 100 || volumeArg < 0) {
+			yield {
+				content: i18n.__("volume.errorNotValid"),
+				ephemeral: true,
+			};
+			return;
+		}
 
 		queue.volume = volumeArg;
 		queue.resource.volume?.setVolumeLogarithmic(volumeArg / 100);
 
-		return interaction
-			.reply({content: i18n.__mf("volume.result", {arg: volumeArg})})
-			.catch(console.error);
+		yield i18n.__mf("volume.result", {arg: volumeArg});
 	},
-};
+	{
+		type: "Integer",
+		name: "volume",
+	}
+);

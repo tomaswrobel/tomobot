@@ -1,46 +1,34 @@
-import { ChannelType } from "discord.js";
-import {
-	ChatInputCommandInteraction,
-	PermissionsBitField,
-	SlashCommandBuilder,
-	TextChannel,
-} from "discord.js";
+import {PermissionsBitField, type TextChannel} from "discord.js";
+import SlashCommand from "../src/SlashCommand";
 
-export default {
-	data: new SlashCommandBuilder()
-		.setName("delete")
-		.setDescription("Delete n messages")
-		.addIntegerOption(option =>
-			option
-				.setName("amount")
-				.setDescription("Amount of messages to delete")
-				.setRequired(true)
-		),
-	cooldown: 3,
-	permissions: [PermissionsBitField.Flags.ManageMessages],
-	async execute(interaction: ChatInputCommandInteraction) {
-		const amount = interaction.options.getInteger("amount");
-
-		if (amount == null || amount <= 0 || amount > 100) {
-			return interaction.reply({
-				content: "You need to input a number between 1 and 100.",
-				ephemeral: true,
-			});
-		}
-
-		const channel = interaction.channel!;
-
-		if (channel.type === ChannelType.GuildText) {
-			const messages = await channel.messages.fetch({
-				limit: amount,
-			});
-
-			channel.bulkDelete(messages);
-		}
-
-		return interaction.reply({
-			content: `Deleted ${amount} messages.`,
-			ephemeral: true,
-		});
+export = new SlashCommand(
+	{
+		permissions: [PermissionsBitField.Flags.ManageMessages],
+		cooldown: 3,
+		description: "Deletes messages",
 	},
-};
+	async function* (amount) {
+		if (amount > 100) {
+			yield "You can only delete 100 messages at a time";
+			return;
+		} else if (amount < 1) {
+			yield "You must delete at least 1 message";
+			return;
+		} else {
+			yield `Deleting ${amount} messages...`;
+		}
+		const channel = this.channel as TextChannel;
+		const messages = await channel.messages.fetch({limit: amount});
+		await channel.bulkDelete(messages);
+		yield {
+			content: `Deleted ${messages.size} messages`,
+			ephemeral: true,
+		};
+	},
+	{
+		type: "Integer",
+		name: "amount",
+		description: "Amount of messages to delete",
+		required: true,
+	}
+);
