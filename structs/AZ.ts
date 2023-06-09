@@ -33,7 +33,7 @@ class AZ {
 	async start() {
 		await this.interaction.reply("⏳ Loading...").catch(console.error);
 
-		const reply = await this.interaction.reply({
+		const reply = await this.interaction.editReply({
 			components: [
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder().addOptions(
