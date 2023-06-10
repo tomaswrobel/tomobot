@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 export interface config {
 	TOKEN: string;
 	PREFIX: string;

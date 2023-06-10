@@ -73,7 +73,7 @@ class Console {
 		await this.update();
 		return new Promise<string>(resolve => {
 			this.message.channel.client.once("messageCreate", m => {
-				this.builder.spliceFields(-1, 1, {
+				this.data.splice(-1, 1, {
 					name: "Input: ",
 					value: m.content,
 				});
@@ -111,6 +111,7 @@ class Console {
 		try {
 			const transpiled = await Babel.transformAsync(code, {
 				filename: "message." + type,
+				minified: true,
 				presets,
 				plugins: [
 					"@babel/plugin-syntax-top-level-await",
@@ -162,17 +163,16 @@ class Console {
 				],
 			});
 			var result = transpiled!.code || "";
+			this.message.edit({
+				files: [
+					new AttachmentBuilder(Buffer.from(result), {
+						name: "transpiled.js",
+					}),
+				],
+			});
 		} catch (e: any) {
 			var result = `console.error(${JSON.stringify(e.message)})`;
 		}
-
-		this.message.edit({
-			files: [
-				new AttachmentBuilder(Buffer.from(result), {
-					name: "transpiled.js",
-				}),
-			],
-		});
 
 		try {
 			await new AsyncFunction("console", result)(this);
