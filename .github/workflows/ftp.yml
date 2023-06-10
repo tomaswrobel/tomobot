@@ -22,7 +22,6 @@ jobs:
     - name: Move files
       run: |
         mv package.json ./dist/package.json
-        mv package-lock.json ./dist/package-lock.json
         mv ./locales/ ./dist/locales/
     - name: Add config
       run: |
