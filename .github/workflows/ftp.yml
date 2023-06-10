@@ -36,6 +36,4 @@ jobs:
         FTP_SERVER: v-buf-17.sparkedhost.us
         FTP_USERNAME: ${{secrets.USERNAME}}
         LOCAL_DIR: dist
-        PORT: 2022
-        ARGS: --delete 
-        
+        PORT: 2022        
