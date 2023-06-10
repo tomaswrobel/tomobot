@@ -1,4 +1,4 @@
-import {AudioResource, createAudioResource, StreamType} from "@discordjs/voice";
+import {AudioResource, createAudioResource} from "@discordjs/voice";
 import youtube from "youtube-sr";
 import {i18n} from "../utils/i18n";
 import {videoPattern, isURL} from "../utils/patterns";
@@ -60,13 +60,7 @@ export class Song {
 	}
 
 	public async makeResource(): Promise<AudioResource<Song> | void> {
-		const source = this.url.includes("youtube") ? "youtube" : "soundcloud";
-
-		if (source === "youtube") {
-			var playStream = await stream(this.url);
-		} else {
-			return;
-		}
+		const playStream = await stream(this.url);
 
 		return createAudioResource(playStream.stream, {
 			metadata: this,

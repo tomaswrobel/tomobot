@@ -109,13 +109,10 @@ export class Bot {
 				console.error(error);
 
 				if (error.message.includes("permissions")) {
-					interaction.reply({content: error.toString(), ephemeral: true}).catch(console.error);
+					await interaction.reply({content: error.toString(), ephemeral: true}).catch(console.error);
 				} else {
-					interaction
-						.reply({
-							content: i18n.__("common.errorCommand"),
-							ephemeral: true,
-						})
+					await interaction
+						.reply({content: i18n.__("common.errorCommand"), ephemeral: true})
 						.catch(console.error);
 				}
 			}

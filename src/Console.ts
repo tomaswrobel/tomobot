@@ -1,16 +1,22 @@
-import {type Message, EmbedBuilder} from "discord.js";
+import {type Message, EmbedBuilder, APIEmbedField, AttachmentBuilder} from "discord.js";
 import * as Babel from "@babel/core";
 
-const AsyncFunction = async function () {}.constructor as new (
-	...args: string[]
-) => (...args: any[]) => Promise<any>;
+const AsyncFunction = async function () {}.constructor as new (...args: string[]) => (
+	...args: any[]
+) => Promise<any>;
 
 class Console {
 	message!: Message;
 	builder!: EmbedBuilder;
-	data: Console.Data[] = [];
+	data: APIEmbedField[] = [];
 
 	async update() {
+		if (this.data.length > 25) {
+			this.data = this.data.slice(-25);
+		}
+
+		this.builder.setFields(this.data);
+
 		if (this.message && this.builder) {
 			await this.message.edit({
 				embeds: [this.builder],
@@ -20,47 +26,47 @@ class Console {
 
 	log(...args: any[]) {
 		for (const arg of args) {
-			this.builder.addFields({
+			this.data.push({
 				name: "Console",
 				value: stringify(arg),
 			});
 		}
-		this.update();
+		return this.update();
 	}
 
 	error(...args: any[]) {
 		for (const arg of args) {
-			this.builder.addFields({
+			this.data.push({
 				value: stringify(arg),
 				name: "Error",
 			});
 		}
-		this.update();
+		return this.update();
 	}
 
 	clear() {
 		this.data.length = 0;
-		this.update();
+		return this.update();
 	}
 
 	warn(...args: any[]) {
 		for (const arg of args) {
-			this.builder.addFields({
+			this.data.push({
 				value: stringify(arg),
 				name: ":warning: Warn",
 			});
 		}
-		this.update();
+		return this.update();
 	}
 
-	assert(assertion: boolean, ...args: any[]) {
+	async assert(assertion: boolean, ...args: any[]) {
 		if (assertion === false) {
-			this.error(...args);
+			await this.error(...args);
 		}
 	}
 
 	async read() {
-		this.builder.addFields({
+		this.data.push({
 			name: "Input: ",
 			value: "Awaiting...",
 		});
@@ -90,10 +96,7 @@ class Console {
 					(type === "ts"
 						? "4/4c/Typescript_logo_2020.svg/240px-Typescript_logo_2020.svg.png"
 						: "6/6a/JavaScript-logo.png/240px-JavaScript-logo.png"),
-				url:
-					type === "ts"
-						? "https://www.typescriptlang.org/"
-						: undefined,
+				url: type === "ts" ? "https://www.typescriptlang.org/" : undefined,
 			},
 		});
 
@@ -109,17 +112,72 @@ class Console {
 			const transpiled = await Babel.transformAsync(code, {
 				filename: "message." + type,
 				presets,
-				plugins: ["@babel/plugin-syntax-top-level-await"],
+				plugins: [
+					"@babel/plugin-syntax-top-level-await",
+					{
+						visitor: {
+							// Since console functions are asynchronous, we need to await them
+							CallExpression(path) {
+								if (
+									path.parent.type !== "AwaitExpression" &&
+									path.node.callee.type === "MemberExpression" &&
+									path.node.callee.object.type === "Identifier" &&
+									path.node.callee.object.name === "console"
+								) {
+									path.replaceWith(Babel.types.awaitExpression(path.node));
+								}
+							},
+							// Endless loop protection
+							Loop(path) {
+								const iterator = path.parentPath.scope.generateUidIdentifier("i");
+								const body = path.get("body");
+
+								path.insertBefore(
+									Babel.types.variableDeclaration("let", [
+										Babel.types.variableDeclarator(iterator, Babel.types.numericLiteral(0)),
+									])
+								);
+
+								const guard = Babel.types.ifStatement(
+									Babel.types.binaryExpression(
+										">",
+										Babel.types.updateExpression("++", iterator),
+										Babel.types.numericLiteral(100000)
+									),
+									Babel.types.throwStatement(
+										Babel.types.newExpression(Babel.types.identifier("Error"), [
+											Babel.types.stringLiteral("Endless loop detected"),
+										])
+									)
+								);
+
+								if (body.isBlockStatement()) {
+									body.node.body.unshift(guard);
+								} else {
+									body.replaceWith(Babel.types.blockStatement([guard, body.node]));
+								}
+							},
+						},
+					},
+				],
 			});
 			var result = transpiled!.code || "";
 		} catch (e: any) {
 			var result = `console.error(${JSON.stringify(e.message)})`;
 		}
 
+		this.message.edit({
+			files: [
+				new AttachmentBuilder(Buffer.from(result), {
+					name: "transpiled.js",
+				}),
+			],
+		});
+
 		try {
 			await new AsyncFunction("console", result)(this);
 		} catch (e) {
-			this.error(e);
+			await this.error(e);
 		}
 	}
 }

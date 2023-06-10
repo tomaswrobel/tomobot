@@ -14,9 +14,9 @@
 ## 🚀 Getting Started (with SparkedHost)
 
 First, clone the repo. Then, provide the Secrets:
-1. TOKEN - being the Discord Bot Token
-2. UNSPLASH_ACCESS_KEY - being the Unsplash access key (not the secret one)
-3. USERNAME, PASSWORD - Your login info found in the panel
+1. `TOKEN` - being the Discord Bot Token
+2. `UNSPLASH_ACCESS_KEY` - being the Unsplash access key (not the secret one)
+3. `USERNAME`, `PASSWORD` - Your login info found in the panel
 
 Then commit and run!
 
@@ -46,7 +46,7 @@ Then commit and run!
 
 `/az-quiz @oponent`
 
-- Now Playing (/np)
+- Now Playing (/nowplaying)
 - Queue system (/queue)
 - Loop / Repeat (/loop)
 - Shuffle (/shuffle)
@@ -54,9 +54,6 @@ Then commit and run!
 - Pause (/pause)
 - Resume (/resume)
 - Skip (/skip)
-- Skip to song # in queue (/skipto)
-- Move a song in the queue (/move)
-- Remove song # from queue (/remove)
 - Show ping to Discord API (/ping)
 - Show bot uptime (/uptime)
 - Toggle pruning of bot messages (/pruning)
@@ -64,6 +61,48 @@ Then commit and run!
 - Media Controls via ~~Reactions~~ Discord buttons
 - Unsplash Wallpapers (/wallpaper)
 - Running TypeScript and JavaScript code
+
+## Custom command
+Creating custom command is as fast as creating a file.
+
+Under the `commands` folder, create a TypeScript file with the same name as your command.
+
+```ts
+import SlashCommand from "../src/SlashCommand";
+
+export = new SlashCommand(
+    {
+        description: "Your description"
+    },
+    async function* () {
+        // Yielding causes a reply to be sent
+        yield "Hello world!";
+    },
+)
+```
+
+or
+
+```ts
+import SlashCommand from "../src/SlashCommand";
+
+export = new SlashCommand(
+    {
+        description: "Your description",
+    },
+    async function* (user) {
+        yield `Hello world, @${user.tag}!`;
+
+        // If you really need the Interaction AI, you use this:
+        yield `Hello world, @${this.user.tag}!`;
+    },
+    {
+        type: "User",
+        name: "user",
+        required: true
+    }
+)
+```
 
 ## 🌎 Locales
 
@@ -101,7 +140,7 @@ Currently available locales are:
 3. Running JS and TS from message
 4. AZ quiz (pyramid game)
 5. A quiz (single Q/A)
-6. Huge rewrite since v2
+6. Huge API rewrite since v2
 
 ## LICENSE
 Original Author &copy; Erit Islami 2019

@@ -5,18 +5,11 @@ import {Song} from "./Song";
 const pattern = /^.*(youtu.be\/|list=)([^#\&\?]*).*/i;
 
 export class Playlist {
-	public data: YoutubePlaylist;
 	public videos: Song[];
 
-	public constructor(playlist: YoutubePlaylist) {
-		this.data = playlist;
-
+	public constructor(public data: YoutubePlaylist) {
 		this.videos = this.data.videos
-			.filter(
-				video =>
-					video.title != "Private video" &&
-					video.title != "Deleted video"
-			)
+			.filter(video => video.title != "Private video" && video.title != "Deleted video")
 			.slice(0, config.MAX_PLAYLIST_SIZE - 1)
 			.map(video => {
 				return new Song({
@@ -29,14 +22,12 @@ export class Playlist {
 
 	public static async from(url: string = "", search: string = "") {
 		const urlValid = pattern.test(url);
-		let playlist;
 
 		if (urlValid) {
-			playlist = await youtube.getPlaylist(url);
+			var playlist = await youtube.getPlaylist(url);
 		} else {
 			const result = await youtube.searchOne(search, "playlist");
-
-			playlist = await youtube.getPlaylist(result.url!);
+			var playlist = await youtube.getPlaylist(result.url!);
 		}
 
 		return new this(playlist);

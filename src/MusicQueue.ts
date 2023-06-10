@@ -14,19 +14,17 @@ import {
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
+	ButtonInteraction,
 	ButtonStyle,
 	CommandInteraction,
 	ComponentType,
 	Message,
 	TextChannel,
-	User,
 } from "discord.js";
 import {promisify} from "node:util";
 import {bot} from "../index";
-import {QueueOptions} from "../interfaces/QueueOptions";
 import {config} from "../utils/config";
 import {i18n} from "../utils/i18n";
-import {canModifyQueue} from "../utils/queue";
 import {Song} from "./Song";
 
 const wait = promisify(setTimeout);
@@ -48,7 +46,7 @@ export class MusicQueue {
 	private readyLock = false;
 	private stopped = false;
 
-	public constructor(options: QueueOptions) {
+	public constructor(options: MusicQueue.Options) {
 		Object.assign(this, options);
 
 		this.player = createAudioPlayer({
@@ -414,5 +412,13 @@ export class MusicQueue {
 				}, 3000);
 			}
 		});
+	}
+}
+
+export declare namespace MusicQueue {
+	interface Options {
+		interaction: CommandInteraction | ButtonInteraction;
+		textChannel: TextChannel;
+		connection: VoiceConnection;
 	}
 }

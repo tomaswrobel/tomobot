@@ -11,12 +11,9 @@ export = new SlashCommand({description: "See open-source licenses"}, async funct
 	for (const name in dependencies) {
 		const json = await import(`../node_modules/${name}/package.json`);
 
-		let description = json.description || "No description provided.";
-		description += `\n\n[View on npm](https://npmjs.com/package/${name})`;
-
 		embed.addFields({
 			name,
-			value: description,
+			value: `${json.description || "No description provided."}\n[View on npm](https://npmjs.com/package/${name})`,
 		});
 	}
 
