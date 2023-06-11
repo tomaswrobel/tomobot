@@ -5,6 +5,7 @@ import {
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
 import SlashCommand from "../src/SlashCommand";
+import addPoints from "./add-points";
 
 export = new SlashCommand(
 	{
@@ -48,7 +49,8 @@ export = new SlashCommand(
 			});
 
 			if (interaction.values[0] === quiz.correctAnswer) {
-				await interaction.reply("✅ **Correct**");
+				await interaction.reply(`✅ **Correct!** - ${quiz.correctAnswer} Got 5 points`);
+				await addPoints.run(interaction, 5, interaction.user);
 			} else {
 				await interaction.reply(`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
 			}

@@ -6,11 +6,12 @@ import {
 	CommandInteraction,
 	EmbedBuilder,
 	PermissionsBitField,
+	StringSelectMenuInteraction
 } from "discord.js";
 import {Song} from "../src/Song";
 import SlashCommand from "../src/SlashCommand";
 
-function generateQueueEmbed(interaction: CommandInteraction | ButtonInteraction, songs: Song[]) {
+function generateQueueEmbed(interaction: CommandInteraction | ButtonInteraction | StringSelectMenuInteraction, songs: Song[]) {
 	const embeds = [];
 
 	for (let i = 0, k = 10; i < songs.length; i += 10, k += 10) {

@@ -7,6 +7,7 @@
  * When you yield a value, it will be sent as a message.
  * If you need access to `interaction`, you can use `this`.
  */
+import { StringSelectMenuInteraction } from "discord.js";
 import {
 	type ChatInputCommandInteraction,
 	type BaseMessageOptions,
@@ -32,7 +33,7 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 	public constructor(
 		private data: SlashCommand.Data,
 		private fn: (
-			this: ChatInputCommandInteraction | ButtonInteraction,
+			this: ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction,
 			...args: SlashCommand.ExtractParams<O>
 		) => AsyncGenerator<string | BaseMessageOptions | (typeof SlashCommand)["DEFER" | "DELETE"]>,
 		...options: O
@@ -78,7 +79,7 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 	 * @param args The arguments of the command
 	 */
 	public async run(
-		interaction: ChatInputCommandInteraction | ButtonInteraction,
+		interaction: ChatInputCommandInteraction | ButtonInteraction | StringSelectMenuInteraction,
 		...args: SlashCommand.ExtractParams<O>
 	) {
 		for await (const message of this.fn.apply(interaction, args)) {

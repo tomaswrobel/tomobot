@@ -9,6 +9,7 @@ import {
 	AnyThreadChannel,
 } from "discord.js";
 import sharp from "sharp";
+import addPoints from "../commands/add-points";
 
 class AZHex {
 	public color: "orange" | "blue" | "black" | "white" = "white";
@@ -94,7 +95,7 @@ class AZ {
 			const blue = this.items.filter(item => item.color === "blue").length;
 
 			return await this.interaction.editReply({
-				content: orange > blue ? `<@${this.players[0].id}> has won` : (orange === blue) ? "Draw" : `<@${this.players[1].id}> has won`,
+				content: orange > blue ? `<@${this.players[0].id}> has won.` : (orange === blue) ? "Draw" : `<@${this.players[1].id}> has won`,
 				files: [new AttachmentBuilder(buffer, {name: "az.png"})],
 				components: [],
 			});
@@ -156,7 +157,8 @@ class AZ {
 			}
 
 			if (interaction.values[0] === quiz.correctAnswer) {
-				await interaction[edit]("✅ **Correct**");
+				await interaction[edit]("✅ **Correct**. Got 5 points");
+				await addPoints.run(interaction, 5, interaction.user);
 				this.items[n].color = this.player ? "blue" : "orange";
 			} else {
 				await interaction[edit](`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
