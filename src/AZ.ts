@@ -17,6 +17,7 @@ class AZHex {
 
 class AZ {
 	private thread: AnyThreadChannel;
+	private quizes: any[];
 
 	public constructor(private interaction: ChatInputCommandInteraction) {
 		this.players = [interaction.user, interaction.options.getUser("user", true)];
@@ -31,6 +32,8 @@ class AZ {
 		});
 
 		await this.thread.join();
+
+		this.quizes = await fetch("https://the-trivia-api.com/v2/questions/?limit=28").then(res => res.json());
 
 		const collector = reply.createMessageComponentCollector({
 			componentType: ComponentType.StringSelect,
@@ -60,32 +63,57 @@ class AZ {
 				new StringSelectMenuOptionBuilder().setLabel(`Ask - ${i + 1}`).setValue(`${i + 1}`)
 			)
 			.filter((_, i) => this.items[i].color === "white");
+		if (options.length > 25) {
+			const half1 = options.slice(0, Math.floor(options.length / 2));
+			const half2 = options.slice(Math.floor(options.length / 2));
 
-		const half1 = options.slice(0, Math.floor(options.length / 2));
-		const half2 = options.slice(Math.floor(options.length / 2));
+			return await this.interaction.editReply({
+				content: "",
+				files: [new AttachmentBuilder(buffer, {name: "az.png"})],
+				components: [
+					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+						new StringSelectMenuBuilder()
+							.addOptions(half1)
+							.setCustomId(`az-${this.player}-1`)
+							.setMaxValues(1)
+							.setMinValues(1)
+							.setPlaceholder("Select a hexagon here...")
+					),
+					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+						new StringSelectMenuBuilder()
+							.addOptions(half2)
+							.setCustomId(`az-${this.player}-2`)
+							.setMaxValues(1)
+							.setMinValues(1)
+							.setPlaceholder("Or here...")
+					),
+				],
+			});
+		} else if (!options.length) {
+			const orange = this.items.filter(item => item.color === "orange").length;
+			const blue = this.items.filter(item => item.color === "blue").length;
 
-		return await this.interaction.editReply({
-			content: "",
-			files: [new AttachmentBuilder(buffer, {name: "az.png"})],
-			components: [
-				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					new StringSelectMenuBuilder()
-						.addOptions(half1)
-						.setCustomId(`az-${this.player}-1`)
-						.setMaxValues(1)
-						.setMinValues(1)
-						.setPlaceholder("Select a hexagon here...")
-				),
-				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					new StringSelectMenuBuilder()
-						.addOptions(half2)
-						.setCustomId(`az-${this.player}-2`)
-						.setMaxValues(1)
-						.setMinValues(1)
-						.setPlaceholder("Or here...")
-				),
-			],
-		});
+			return await this.interaction.editReply({
+				content: orange > blue ? `<@${this.players[0].id}> has won` : (orange === blue) ? "Draw" : `<@${this.players[1].id}> has won`,
+				files: [new AttachmentBuilder(buffer, {name: "az.png"})],
+				components: [],
+			});
+		} else {
+			return await this.interaction.editReply({
+				content: "",
+				files: [new AttachmentBuilder(buffer, {name: "az.png"})],
+				components: [
+					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+						new StringSelectMenuBuilder()
+							.addOptions(options)
+							.setCustomId(`az-${this.player}`)
+							.setMaxValues(1)
+							.setMinValues(1)
+							.setPlaceholder("Select a hexagon here...")
+					),
+				],
+			});
+		}
 	}
 
 	private next() {
@@ -94,7 +122,7 @@ class AZ {
 
 	private async ask(n: number) {
 		const player = this.players[this.player];
-		const [quiz] = await fetch("https://the-trivia-api.com/v2/questions/?limit=1").then(res => res.json());
+		const quiz = this.quizes.pop();
 
 		const reply = await this.thread.send({
 			content: `<@${player.id}>, **${quiz.question.text}**`,
