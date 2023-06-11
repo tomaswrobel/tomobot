@@ -93,7 +93,7 @@ class Bot extends Client {
 	}
 
 	private async registerSlashCommands() {
-		const rest = new REST({version: "9"}).setToken(process.env.TOKEN!);
+		const rest = new REST({version: "9"}).setToken(process.env.DISCORD_TOKEN!);
 
 		for (const file of await readdir(join(__dirname, "..", "commands"))) {
 			const command: SlashCommand = require(join(__dirname, "..", "commands", file));
