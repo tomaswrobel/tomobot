@@ -9,7 +9,7 @@ import {
 	AnyThreadChannel,
 } from "discord.js";
 import sharp from "sharp";
-import addPoints from "../commands/add-points";
+import Database from "./Database";
 
 class AZHex {
 	public color: "orange" | "blue" | "black" | "white" = "white";
@@ -149,7 +149,7 @@ class AZ {
 
 		collector.on("collect", async interaction => {
 			const edit = interaction.replied ? "editReply" : "reply";
-			if (interaction.user.id !== this.players[this.player].id) {
+			if (interaction.user.id !== player.id) {
 				await interaction[edit]({
 					content: "It's not your turn!",
 				});
@@ -158,7 +158,9 @@ class AZ {
 
 			if (interaction.values[0] === quiz.correctAnswer) {
 				await interaction[edit]("✅ **Correct**. Got 5 points");
-				await addPoints.run(interaction, 5, interaction.user);
+				const database = new Database(interaction.guild!.id);
+				await database.createTable();
+				await database.add(player.id, 5);
 				this.items[n].color = this.player ? "blue" : "orange";
 			} else {
 				await interaction[edit](`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);

@@ -5,7 +5,7 @@ import {
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
 import SlashCommand from "../src/SlashCommand";
-import addPoints from "./add-points";
+import Database from "../src/Database";
 
 export = new SlashCommand(
 	{
@@ -50,7 +50,9 @@ export = new SlashCommand(
 
 			if (interaction.values[0] === quiz.correctAnswer) {
 				await interaction.reply(`✅ **Correct!** - ${quiz.correctAnswer} Got 5 points`);
-				await addPoints.run(interaction, 5, interaction.user);
+				const database = new Database(this.guild!.id);
+				await database.createTable();
+				await database.add(this.user.id, 5);
 			} else {
 				await interaction.reply(`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
 			}
