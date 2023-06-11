@@ -89,7 +89,7 @@ class Bot extends Client {
 			}
 		});
 
-		this.login(process.env.TOKEN);
+		this.login(process.env.DISCORD_TOKEN);
 	}
 
 	private async registerSlashCommands() {

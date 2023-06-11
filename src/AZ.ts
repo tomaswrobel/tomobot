@@ -60,7 +60,7 @@ class AZ {
 
 		const options = this.items
 			.map((item, i) =>
-				new StringSelectMenuOptionBuilder().setLabel(`Ask - ${i + 1}`).setValue(`${i + 1}`)
+				new StringSelectMenuOptionBuilder().setLabel(`Ask - ${i + 1}`).setValue(`${i}`)
 			)
 			.filter((_, i) => this.items[i].color === "white");
 		if (options.length > 25) {
@@ -157,10 +157,10 @@ class AZ {
 
 			if (interaction.values[0] === quiz.correctAnswer) {
 				await interaction[edit]("✅ **Correct**");
-				this.set(n, this.player === 0 ? "orange" : "blue");
+				this.items[n].color = this.player ? "blue" : "orange";
 			} else {
 				await interaction[edit](`❌ **Wrong!**. The correct answer was **${quiz.correctAnswer}**`);
-				this.set(n, "black");
+				this.items[n].color = "black";
 			}
 
 			await reply.edit({
@@ -326,14 +326,6 @@ class AZ {
 				}</text>`,
 			""
 		)}</svg>`;
-	}
-
-	private set(n: number, color: "orange" | "blue" | "black") {
-		this.items[n - 1].color = color;
-	}
-
-	private getColor(n: number) {
-		return this.items[n - 1].color;
 	}
 }
 

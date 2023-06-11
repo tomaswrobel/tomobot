@@ -23,8 +23,11 @@ jobs:
       run: mv package.json ./dist/package.json
     - name: Add config
       run: |
-        echo 'TOKEN="${{secrets.TOKEN}}"' >> ./dist/.env
-        echo 'UNSPLASH_ACCESS_KEY="${{secrets.UNSPLASH_ACCESS_KEY}}"' >> ./dist/.env
+        echo 'UNSPLASH_ACCESS_KEY="${{secrets.UNSPLASH_ACCESS_KEY}}"' >> dist/.env
+        echo 'DISCORD_TOKEN="${{secrets.DISCORD_TOKEN}}"' >> ./dist/.env
+        echo 'DB_USERNAME="${{secrets.DB_USERNAME}}"' >> ./dist/.env
+        echo 'DB_PASSWORD="${{secrets.DB_PASSWORD}}"' >> ./dist/.env
+        echo 'DATABASE="${{secrets.DATABASE}}"' >> ./dist/.env
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v2.0.0
       env:

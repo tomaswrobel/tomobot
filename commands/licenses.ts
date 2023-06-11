@@ -17,6 +17,11 @@ export = new SlashCommand({description: "See open-source licenses"}, async funct
 		});
 	}
 
+	embed.addFields({
+		name: "EvoBot",
+		value: "The core of the music functions. \n[View on GitHub](https://github.com/eritislami/evobot)"
+	})
+
 	yield {
 		content: `**${this.client.user?.username} would not be possible without the following open source projects:**\n\n`,
 		embeds: [embed],

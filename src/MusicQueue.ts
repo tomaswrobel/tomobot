@@ -19,7 +19,6 @@ import {
 	CommandInteraction,
 	ComponentType,
 	GuildMember,
-	Message,
 	TextChannel,
 } from "discord.js";
 import {promisify} from "node:util";
@@ -203,8 +202,6 @@ class MusicQueue {
 	private async sendPlayingMessage(newState: any) {
 		const song = (newState.resource as AudioResource<Song>).metadata;
 
-		let playingMessage: Message;
-
 		try {
 			const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
 				new ButtonBuilder()
@@ -251,7 +248,7 @@ class MusicQueue {
 					.setCustomId("stop")
 			);
 
-			playingMessage = await this.textChannel.send({
+			var playingMessage = await this.textChannel.send({
 				content: (newState.resource as AudioResource<Song>).metadata.startMessage(),
 				components: [row, row2],
 			});

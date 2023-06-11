@@ -13,18 +13,19 @@ import SlashCommand from "../src/SlashCommand";
 function generateQueueEmbed(interaction: CommandInteraction | ButtonInteraction, songs: Song[]) {
 	const embeds = [];
 
-	for (let i = 0, k = 10; i < songs.length; i += 10) {
+	for (let i = 0, k = 10; i < songs.length; i += 10, k += 10) {
 		const current = songs.slice(i, k);
-		let j = i;
-		k += 10;
 
-		const info = current.map(track => `${++j} - [${track.title}](${track.url})`).join("\n");
+		const info = current.reduce(
+			(rest, track) => `${rest}\n${i + 1} - [${track.title}](${track.url})`,
+			"\n"
+		);
 
 		const embed = new EmbedBuilder()
 			.setTitle("Song Queue")
 			.setThumbnail(interaction.guild!.iconURL())
 			.setColor("#F8AA2A")
-			.setDescription(`**Current Song - [${songs[0].title}](${songs[0].url})**\n\n${info}`)
+			.setDescription(`**Current Song - [${songs[0].title}](${songs[0].url})**${info}`)
 			.setTimestamp();
 		embeds.push(embed);
 	}

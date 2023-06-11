@@ -1,6 +1,6 @@
 {
 	"name": "tomobot",
-	"version": "2.5.0",
+	"version": "2.6.0",
 	"description": "Tomobot is an EvoBot-based discord bot.",
 	"main": "index.js",
 	"repository": "https://github.com/tomas-wrobel/tomobot",
@@ -17,6 +17,7 @@
 		"discord.js": "^14.11.0",
 		"dotenv": "^16.1.4",
 		"ffmpeg-static": "^5.1.0",
+		"mysql": "^2.18.1",
 		"opusscript": "^0.1.0",
 		"play-dl": "^1.9.6",
 		"sharp": "^0.32.1",
@@ -27,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@types/babel__core": "^7.20.1",
+		"@types/mysql": "^2.15.21",
 		"@types/node": "^20.2.5"
 	}
 }

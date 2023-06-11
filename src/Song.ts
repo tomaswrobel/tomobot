@@ -24,11 +24,8 @@ export class Song {
 
 	public static async from(url = "", search = "") {
 		const isYoutubeUrl = pattern.test(url);
-
-		let songInfo;
-
 		if (isYoutubeUrl) {
-			songInfo = await video_basic_info(url);
+			const songInfo = await video_basic_info(url);
 
 			return new this({
 				url: songInfo.video_details.url,
@@ -50,7 +47,7 @@ export class Song {
 				throw err;
 			}
 
-			songInfo = await video_basic_info(`https://youtube.com/watch?v=${result.id}`);
+			const songInfo = await video_basic_info(`https://youtube.com/watch?v=${result.id}`);
 
 			return new this({
 				url: songInfo.video_details.url,
