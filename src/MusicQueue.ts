@@ -19,6 +19,7 @@ import {
 	CommandInteraction,
 	ComponentType,
 	GuildMember,
+	StringSelectMenuInteraction,
 	TextChannel,
 } from "discord.js";
 import {promisify} from "node:util";
@@ -344,7 +345,7 @@ class MusicQueue {
 
 declare namespace MusicQueue {
 	interface Options {
-		interaction: CommandInteraction | ButtonInteraction;
+		interaction: CommandInteraction | ButtonInteraction | StringSelectMenuInteraction;
 		textChannel: TextChannel;
 		connection: VoiceConnection;
 	}
