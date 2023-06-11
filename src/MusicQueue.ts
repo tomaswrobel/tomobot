@@ -14,12 +14,11 @@ import {
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonInteraction,
 	ButtonStyle,
 	CommandInteraction,
 	ComponentType,
 	GuildMember,
-	StringSelectMenuInteraction,
+	RepliableInteraction,
 	TextChannel,
 } from "discord.js";
 import {promisify} from "node:util";
@@ -345,7 +344,7 @@ class MusicQueue {
 
 declare namespace MusicQueue {
 	interface Options {
-		interaction: CommandInteraction | ButtonInteraction | StringSelectMenuInteraction;
+		interaction: RepliableInteraction;
 		textChannel: TextChannel;
 		connection: VoiceConnection;
 	}

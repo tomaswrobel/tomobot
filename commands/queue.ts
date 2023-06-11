@@ -1,34 +1,33 @@
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonInteraction,
 	ButtonStyle,
-	CommandInteraction,
 	EmbedBuilder,
 	PermissionsBitField,
-	StringSelectMenuInteraction
+	RepliableInteraction,
 } from "discord.js";
 import {Song} from "../src/Song";
 import SlashCommand from "../src/SlashCommand";
 
-function generateQueueEmbed(interaction: CommandInteraction | ButtonInteraction | StringSelectMenuInteraction, songs: Song[]) {
-	const embeds = [];
+function generateQueueEmbed(interaction: RepliableInteraction, songs: Song[]) {
+	const embeds: EmbedBuilder[] = [];
 
 	for (let i = 0, k = 10; i < songs.length; i += 10, k += 10) {
 		const current = songs.slice(i, k);
 
 		const info = current.reduce(
 			(rest, track) => `${rest}\n${i + 1} - [${track.title}](${track.url})`,
-			"\n"
+			`**Current Song - [${songs[0].title}](${songs[0].url})**\n`
 		);
 
-		const embed = new EmbedBuilder()
-			.setTitle("Song Queue")
-			.setThumbnail(interaction.guild!.iconURL())
-			.setColor("#F8AA2A")
-			.setDescription(`**Current Song - [${songs[0].title}](${songs[0].url})**${info}`)
-			.setTimestamp();
-		embeds.push(embed);
+		embeds.push(
+			new EmbedBuilder()
+				.setTitle("Song Queue")
+				.setThumbnail(interaction.guild!.iconURL())
+				.setColor("#F8AA2A")
+				.setDescription(info)
+				.setTimestamp()
+		);
 	}
 
 	return embeds;

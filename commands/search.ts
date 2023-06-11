@@ -59,18 +59,18 @@ export = new SlashCommand(
 			time: 30000,
 		});
 
-		if (!(selectInteraction instanceof StringSelectMenuInteraction)) return;
+		if (selectInteraction instanceof StringSelectMenuInteraction) {
+			selectInteraction.update({
+				content: "⏳ Loading the selected songs...",
+				components: [],
+			});
 
-		selectInteraction.update({
-			content: "⏳ Loading the selected songs...",
-			components: [],
-		});
-
-		await Promise.all(
-			selectInteraction.values.map(url => {
-				return play.run(this, url);
-			})
-		);
+			await Promise.all(
+				selectInteraction.values.map(url => {
+					return play.run(this, url);
+				})
+			);
+		}
 	},
 	{
 		type: "String",
