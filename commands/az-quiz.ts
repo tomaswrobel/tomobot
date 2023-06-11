@@ -17,4 +17,4 @@ export = new SlashCommand(
 		name: "user",
 		required: true,
 	}
-)
+);

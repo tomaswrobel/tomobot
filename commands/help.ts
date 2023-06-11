@@ -1,18 +1,14 @@
 import {EmbedBuilder} from "discord.js";
-import {i18n} from "../utils/i18n";
-import {bot} from "../index";
 import SlashCommand from "../src/SlashCommand";
 
 export = new SlashCommand(
 	{
-		description: i18n.__("help.description"),
+		description: "List of all commands",
 	},
 	async function* () {
-		const helpEmbed = new EmbedBuilder()
-			.setDescription(i18n.__("help.embedDescription"))
-			.setColor("#F8AA2A");
+		const helpEmbed = new EmbedBuilder().setDescription("List of all commands").setColor("#F8AA2A");
 
-		for (const [name, {description}] of bot.slashCommandsMap) {
+		for (const [name, {description}] of this.client.slashCommandsMap) {
 			helpEmbed.addFields({
 				name: `**${name}**`,
 				value: `${description}`,
@@ -21,11 +17,7 @@ export = new SlashCommand(
 		}
 
 		yield {
-			content:
-				"# " +
-				i18n.__mf("help.embedTitle", {
-					botname: this.client.user!.username,
-				}),
+			content: `# ${this.client.user!.username} Help`,
 			embeds: [
 				helpEmbed.setAuthor({
 					name: "Commands",

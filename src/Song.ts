@@ -1,8 +1,9 @@
 import {AudioResource, createAudioResource} from "@discordjs/voice";
 import youtube from "youtube-sr";
-import {i18n} from "../utils/i18n";
-import {videoPattern, isURL} from "../utils/patterns";
 import {stream, video_basic_info} from "play-dl";
+
+const pattern = /^(https?:\/\/)?(www\.)?(m\.|music\.)?(youtube\.com|youtu\.?be)\/.+$/;
+const isURL = /^https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
 
 export interface SongData {
 	url: string;
@@ -21,8 +22,8 @@ export class Song {
 		this.duration = duration;
 	}
 
-	public static async from(url: string = "", search: string = "") {
-		const isYoutubeUrl = videoPattern.test(url);
+	public static async from(url = "", search = "") {
+		const isYoutubeUrl = pattern.test(url);
 
 		let songInfo;
 
@@ -40,16 +41,16 @@ export class Song {
 			result || console.log(`No results found for ${search}`); // This is for handling the case where no results are found (spotify links for example)
 
 			if (!result) {
-				let err = new Error(`No search results found for ${search}`);
+				const err = new Error(`No search results found for ${search}`);
 				err.name = "NoResults";
-				if (isURL.test(url)) err.name = "InvalidURL";
+				if (isURL.test(url)) {
+					err.name = "InvalidURL";
+				}
 
 				throw err;
 			}
 
-			songInfo = await video_basic_info(
-				`https://youtube.com/watch?v=${result.id}`
-			);
+			songInfo = await video_basic_info(`https://youtube.com/watch?v=${result.id}`);
 
 			return new this({
 				url: songInfo.video_details.url,
@@ -70,9 +71,6 @@ export class Song {
 	}
 
 	public startMessage() {
-		return i18n.__mf("play.startedPlaying", {
-			title: this.title,
-			url: this.url,
-		});
+		return `🎶 **Started playing:** ${this.title} ${this.url}`;
 	}
 }

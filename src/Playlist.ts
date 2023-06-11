@@ -1,16 +1,14 @@
 import youtube, {Playlist as YoutubePlaylist} from "youtube-sr";
-import {config} from "../utils/config";
 import {Song} from "./Song";
 
 const pattern = /^.*(youtu.be\/|list=)([^#\&\?]*).*/i;
 
-export class Playlist {
+class Playlist {
 	public videos: Song[];
 
-	public constructor(public data: YoutubePlaylist) {
+	private constructor(public data: YoutubePlaylist) {
 		this.videos = this.data.videos
 			.filter(video => video.title != "Private video" && video.title != "Deleted video")
-			.slice(0, config.MAX_PLAYLIST_SIZE - 1)
 			.map(video => {
 				return new Song({
 					title: video.title!,
@@ -20,7 +18,7 @@ export class Playlist {
 			});
 	}
 
-	public static async from(url: string = "", search: string = "") {
+	public static async from(url = "", search = "") {
 		const urlValid = pattern.test(url);
 
 		if (urlValid) {
@@ -33,3 +31,5 @@ export class Playlist {
 		return new this(playlist);
 	}
 }
+
+export default Playlist;

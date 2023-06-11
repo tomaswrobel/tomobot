@@ -1,11 +1,10 @@
 import {EmbedBuilder} from "discord.js";
-import {config} from "../utils/config";
 import {createApi} from "unsplash-js";
 import {name} from "../package.json";
 import SlashCommand from "../src/SlashCommand";
 
 const unsplash = createApi({
-	accessKey: config.UNSPLASH_ACCESS_KEY,
+	accessKey: process.env.UNSPLASH_ACCESS_KEY!,
 });
 
 const params = new URLSearchParams({
@@ -51,8 +50,7 @@ export = new SlashCommand(
 		try {
 			var photo = await getPhoto(query);
 		} catch (error: any) {
-			yield String(error);
-			return;
+			return yield String(error);
 		}
 
 		const embed = new EmbedBuilder()

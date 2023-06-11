@@ -104,36 +104,6 @@ export = new SlashCommand(
 )
 ```
 
-## 🌎 Locales
-
-Currently available locales are:
-
-- English (en)
-- Arabic (ar)
-- Brazilian Portuguese (pt_br)
-- Czech (cs)
-- Dutch (nl)
-- French (fr)
-- German (de)
-- Greek (el)
-- Indonesian (id)
-- Italian (it)
-- Japanese (ja)
-- Korean (ko)
-- Minionese (mi)
-- Persian (fa)
-- Polish (pl)
-- Russian (ru)
-- Simplified Chinese (zh_cn)
-- Singaporean Mandarin (zh_sg)
-- Spanish (es)
-- Swedish (sv)
-- Traditional Chinese (zh_tw)
-- Thai (th)
-- Turkish (tr)
-- Ukrainian (uk)
-- Vietnamese (vi)
-
 ## Tomobot exclusive
 1. Button-based media control
 2. `delete` and `wallpaper` command

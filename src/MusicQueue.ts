@@ -18,33 +18,34 @@ import {
 	ButtonStyle,
 	CommandInteraction,
 	ComponentType,
+	GuildMember,
 	Message,
 	TextChannel,
 } from "discord.js";
 import {promisify} from "node:util";
-import {bot} from "../index";
-import {config} from "../utils/config";
-import {i18n} from "../utils/i18n";
 import {Song} from "./Song";
 
 const wait = promisify(setTimeout);
 
-export class MusicQueue {
+class MusicQueue {
 	public readonly interaction: CommandInteraction;
 	public readonly connection: VoiceConnection;
 	public readonly player: AudioPlayer;
 	public readonly textChannel: TextChannel;
-	public readonly bot = bot;
 
 	public resource: AudioResource;
 	public songs: Song[] = [];
-	public volume = config.DEFAULT_VOLUME || 100;
+	public volume = 100;
 	public loop = false;
 	public muted = false;
 	public waitTimeout: NodeJS.Timeout | null;
 	private queueLock = false;
 	private readyLock = false;
 	private stopped = false;
+
+	private get bot() {
+		return this.interaction.client;
+	}
 
 	public constructor(options: MusicQueue.Options) {
 		Object.assign(this, options);
@@ -54,33 +55,20 @@ export class MusicQueue {
 		});
 		this.connection.subscribe(this.player);
 
-		const networkStateChangeHandler = (
-			oldNetworkState: any,
-			newNetworkState: any
-		) => {
+		const networkStateChangeHandler = (oldNetworkState: any, newNetworkState: any) => {
 			const newUdp = Reflect.get(newNetworkState, "udp");
 			clearInterval(newUdp?.keepAliveInterval);
 		};
 
 		this.connection.on(
 			"stateChange" as any,
-			async (
-				oldState: VoiceConnectionState,
-				newState: VoiceConnectionState
-			) => {
-				Reflect.get(oldState, "networking")?.off(
-					"stateChange",
-					networkStateChangeHandler
-				);
-				Reflect.get(newState, "networking")?.on(
-					"stateChange",
-					networkStateChangeHandler
-				);
+			async (oldState: VoiceConnectionState, newState: VoiceConnectionState) => {
+				Reflect.get(oldState, "networking")?.off("stateChange", networkStateChangeHandler);
+				Reflect.get(newState, "networking")?.on("stateChange", networkStateChangeHandler);
 
 				if (newState.status === VoiceConnectionStatus.Disconnected) {
 					if (
-						newState.reason ===
-							VoiceConnectionDisconnectReason.WebSocketClose &&
+						newState.reason === VoiceConnectionDisconnectReason.WebSocketClose &&
 						newState.closeCode === 4014
 					) {
 						try {
@@ -90,9 +78,7 @@ export class MusicQueue {
 							this.stop();
 						}
 					} else if (this.connection.rejoinAttempts < 5) {
-						await wait(
-							(this.connection.rejoinAttempts + 1) * 5_000
-						);
+						await wait((this.connection.rejoinAttempts + 1) * 5000);
 						this.connection.rejoin();
 					} else {
 						this.connection.destroy();
@@ -104,19 +90,14 @@ export class MusicQueue {
 				) {
 					this.readyLock = true;
 					try {
-						await entersState(
-							this.connection,
-							VoiceConnectionStatus.Ready,
-							20_000
-						);
+						await entersState(this.connection, VoiceConnectionStatus.Ready, 20_000);
 					} catch {
-						if (
-							this.connection.state.status !==
-							VoiceConnectionStatus.Destroyed
-						) {
+						if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
 							try {
 								this.connection.destroy();
-							} catch {}
+							} catch (e) {
+								console.error(e);
+							}
 						}
 					} finally {
 						this.readyLock = false;
@@ -125,30 +106,23 @@ export class MusicQueue {
 			}
 		);
 
-		this.player.on(
-			"stateChange" as any,
-			async (oldState: AudioPlayerState, newState: AudioPlayerState) => {
-				if (
-					oldState.status !== AudioPlayerStatus.Idle &&
-					newState.status === AudioPlayerStatus.Idle
-				) {
-					if (this.loop && this.songs.length) {
-						this.songs.push(this.songs.shift()!);
-					} else {
-						this.songs.shift();
-						if (!this.songs.length) return this.stop();
-					}
-
-					if (this.songs.length || this.resource.audioPlayer)
-						this.processQueue();
-				} else if (
-					oldState.status === AudioPlayerStatus.Buffering &&
-					newState.status === AudioPlayerStatus.Playing
-				) {
-					this.sendPlayingMessage(newState);
+		this.player.on("stateChange" as any, async (oldState: AudioPlayerState, newState: AudioPlayerState) => {
+			if (oldState.status !== AudioPlayerStatus.Idle && newState.status === AudioPlayerStatus.Idle) {
+				if (this.loop && this.songs.length) {
+					this.songs.push(this.songs.shift()!);
+				} else {
+					this.songs.shift();
+					if (!this.songs.length) return this.stop();
 				}
+
+				if (this.songs.length || this.resource.audioPlayer) this.processQueue();
+			} else if (
+				oldState.status === AudioPlayerStatus.Buffering &&
+				newState.status === AudioPlayerStatus.Playing
+			) {
+				this.sendPlayingMessage(newState);
 			}
-		);
+		});
 
 		this.player.on("error", error => {
 			console.error(error);
@@ -179,33 +153,27 @@ export class MusicQueue {
 		this.songs = [];
 		this.player.stop();
 
-		!config.PRUNING &&
-			this.textChannel
-				.send(i18n.__("play.queueEnded"))
-				.catch(console.error);
+		this.textChannel.send("❌ Music queue ended.").catch(console.error);
 
 		if (this.waitTimeout !== null) return;
 
 		this.waitTimeout = setTimeout(() => {
-			if (
-				this.connection.state.status !== VoiceConnectionStatus.Destroyed
-			) {
+			if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
 				try {
 					this.connection.destroy();
-				} catch {}
+				} catch (e) {
+					console.error(e);
+				}
 			}
-			bot.queues.delete(this.interaction.guild!.id);
 
-			!config.PRUNING &&
-				this.textChannel.send(i18n.__("play.leaveChannel"));
-		}, config.STAY_TIME * 1000);
+			this.bot.queues.delete(this.interaction.guild!.id);
+
+			this.textChannel.send("Leaving voice channel...");
+		}, Number.parseInt(process.env.STAY_TIME || "10") * 1000);
 	}
 
 	public async processQueue(): Promise<void> {
-		if (
-			this.queueLock ||
-			this.player.state.status !== AudioPlayerStatus.Idle
-		) {
+		if (this.queueLock || this.player.state.status !== AudioPlayerStatus.Idle) {
 			return;
 		}
 
@@ -284,9 +252,7 @@ export class MusicQueue {
 			);
 
 			playingMessage = await this.textChannel.send({
-				content: (
-					newState.resource as AudioResource<Song>
-				).metadata.startMessage(),
+				content: (newState.resource as AudioResource<Song>).metadata.startMessage(),
 				components: [row, row2],
 			});
 		} catch (error: any) {
@@ -303,19 +269,13 @@ export class MusicQueue {
 		collector.on("collect", async interaction => {
 			switch (interaction.customId) {
 				case "skip":
-					await this.bot.slashCommandsMap
-						.get("skip")!
-						.run(interaction);
+					await this.bot.slashCommandsMap.get("skip")!.run(interaction);
 					break;
 				case "pause":
 					if (this.player.state.status == AudioPlayerStatus.Playing) {
-						await this.bot.slashCommandsMap
-							.get("pause")!
-							.run(interaction);
+						await this.bot.slashCommandsMap.get("pause")!.run(interaction);
 					} else {
-						await this.bot.slashCommandsMap
-							.get("resume")!
-							.run(interaction);
+						await this.bot.slashCommandsMap.get("resume")!.run(interaction);
 					}
 					break;
 				case "mute":
@@ -323,46 +283,30 @@ export class MusicQueue {
 						this.resource.volume?.setVolumeLogarithmic(0);
 						if (interaction.replied) {
 							await interaction
-								.editReply(
-									i18n.__mf("play.mutedSong", {
-										author: interaction.user,
-									})
-								)
+								.editReply(`<@${interaction.user.id}> 🔇 muted the music!`)
 								.catch(console.error);
 						} else {
 							await interaction
-								.reply(
-									i18n.__mf("play.mutedSong", {
-										author: interaction.user,
-									})
-								)
+								.reply(`<@${interaction.user.id}> 🔇 muted the music!`)
 								.catch(console.error);
 						}
 					} else {
-						this.resource.volume?.setVolumeLogarithmic(
-							this.volume / 100
-						);
-						const msg = i18n.__mf("play.unmutedSong", {
-							author: interaction.user,
-						});
+						this.resource.volume?.setVolumeLogarithmic(this.volume / 100);
 						if (interaction.replied) {
 							await interaction
-								.editReply(msg)
+								.editReply(`<@${interaction.user.id}> 🔊 unmuted the music!`)
 								.catch(console.error);
 						} else {
-							await interaction.reply(msg).catch(console.error);
+							await interaction
+								.reply(`<@${interaction.user.id}> 🔊 unmuted the music!`)
+								.catch(console.error);
 						}
 					}
 					break;
 				case "volumeDown": {
 					this.volume = Math.max(this.volume - 10, 0);
-					this.resource.volume?.setVolumeLogarithmic(
-						this.volume / 100
-					);
-					const msg = i18n.__mf("play.decreasedVolume", {
-						author: interaction.user,
-						volume: this.volume,
-					});
+					this.resource.volume?.setVolumeLogarithmic(this.volume / 100);
+					const msg = `<@${interaction.user.id}> 🔉 decreased the volume, the volume is now ${this.volume}%`;
 					if (interaction.replied) {
 						await interaction.editReply(msg).catch(console.error);
 					} else {
@@ -370,55 +314,43 @@ export class MusicQueue {
 					}
 					break;
 				}
-				case "volumeUp":
+				case "volumeUp": {
 					this.volume = Math.min(this.volume + 10, 100);
-					this.resource.volume?.setVolumeLogarithmic(
-						this.volume / 100
-					);
-					const msg = i18n.__mf("play.increasedVolume", {
-						author: interaction.user,
-						volume: this.volume,
-					});
+					this.resource.volume?.setVolumeLogarithmic(this.volume / 100);
+					const msg = `<@${interaction.user.id}> 🔊 increased the volume, the volume is now ${this.volume}%`;
 					if (interaction.replied) {
 						await interaction.editReply(msg).catch(console.error);
 					} else {
 						await interaction.reply(msg).catch(console.error);
 					}
 					break;
+				}
 				case "loop":
-					await this.bot.slashCommandsMap
-						.get("loop")!
-						.run(interaction);
+					await this.bot.slashCommandsMap.get("loop")!.run(interaction);
 					break;
 				case "shuffle":
-					await this.bot.slashCommandsMap
-						.get("shuffle")!
-						.run(interaction);
+					await this.bot.slashCommandsMap.get("shuffle")!.run(interaction);
 					break;
 
 				case "stop":
-					await this.bot.slashCommandsMap
-						.get("stop")!
-						.run(interaction);
+					await this.bot.slashCommandsMap.get("stop")!.run(interaction);
 					collector.stop();
 					break;
 			}
 		});
+	}
 
-		collector.on("end", () => {
-			if (config.PRUNING) {
-				setTimeout(() => {
-					playingMessage.delete().catch();
-				}, 3000);
-			}
-		});
+	public canModify(member: GuildMember) {
+		return member.voice.channelId === member.guild.members.me!.voice.channelId;
 	}
 }
 
-export declare namespace MusicQueue {
+declare namespace MusicQueue {
 	interface Options {
 		interaction: CommandInteraction | ButtonInteraction;
 		textChannel: TextChannel;
 		connection: VoiceConnection;
 	}
 }
+
+export default MusicQueue;

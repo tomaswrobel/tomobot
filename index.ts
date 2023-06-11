@@ -1,17 +1,9 @@
+import {version} from "./package.json";
 import {config} from "dotenv";
-config();
-import {Client, GatewayIntentBits} from "discord.js";
-import {Bot} from "./src/Bot";
+import Bot from "./src/Bot";
 
-export const bot = new Bot(
-	new Client({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildVoiceStates,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.GuildMessageReactions,
-			GatewayIntentBits.MessageContent,
-			GatewayIntentBits.DirectMessages,
-		],
-	})
-);
+config();
+console.log("Starting bot...");
+new Bot().on("ready", client => {
+    console.log(`${client.user.username} v${version} ready!`);
+})

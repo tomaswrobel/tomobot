@@ -1,16 +1,17 @@
 import {type Message, EmbedBuilder, APIEmbedField, AttachmentBuilder} from "discord.js";
 import * as Babel from "@babel/core";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 const AsyncFunction = async function () {}.constructor as new (...args: string[]) => (
 	...args: any[]
 ) => Promise<any>;
 
 class Console {
-	message!: Message;
-	builder!: EmbedBuilder;
-	data: APIEmbedField[] = [];
+	private message!: Message;
+	private builder!: EmbedBuilder;
+	private data: APIEmbedField[] = [];
 
-	async update() {
+	private async update() {
 		if (this.data.length > 25) {
 			this.data = this.data.slice(-25);
 		}
@@ -24,7 +25,7 @@ class Console {
 		}
 	}
 
-	log(...args: any[]) {
+	public log(...args: any[]) {
 		for (const arg of args) {
 			this.data.push({
 				name: "Console",
@@ -34,7 +35,7 @@ class Console {
 		return this.update();
 	}
 
-	error(...args: any[]) {
+	public error(...args: any[]) {
 		for (const arg of args) {
 			this.data.push({
 				value: stringify(arg),
@@ -44,12 +45,12 @@ class Console {
 		return this.update();
 	}
 
-	clear() {
+	public clear() {
 		this.data.length = 0;
 		return this.update();
 	}
 
-	warn(...args: any[]) {
+	public warn(...args: any[]) {
 		for (const arg of args) {
 			this.data.push({
 				value: stringify(arg),
@@ -59,13 +60,13 @@ class Console {
 		return this.update();
 	}
 
-	async assert(assertion: boolean, ...args: any[]) {
+	public async assert(assertion: boolean, ...args: any[]) {
 		if (assertion === false) {
 			await this.error(...args);
 		}
 	}
 
-	async read() {
+	public async read() {
 		this.data.push({
 			name: "Input: ",
 			value: "Awaiting...",
@@ -84,7 +85,7 @@ class Console {
 		});
 	}
 
-	async run(message: Message<boolean>) {
+	public async run(message: Message<boolean>) {
 		const presets: Babel.PluginItem[] = [];
 		const type = message.content.slice(3, 5);
 		const code = message.content.slice(6, -4);

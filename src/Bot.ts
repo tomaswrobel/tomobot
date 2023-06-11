@@ -1,70 +1,41 @@
-import {
-	ApplicationCommandDataResolvable,
-	Client,
-	Collection,
-	Events,
-	Interaction,
-	REST,
-	Routes,
-	Snowflake,
-} from "discord.js";
+import {Client, GatewayIntentBits, REST, Routes, type Snowflake} from "discord.js";
+import MusicQueue from "./MusicQueue";
 import SlashCommand from "./SlashCommand";
 import {readdir} from "fs/promises";
 import {join} from "path";
-import {config} from "../utils/config";
-import {i18n} from "../utils/i18n";
-import {MissingPermissionsException} from "../utils/MissingPermissionsException";
-import {MusicQueue} from "./MusicQueue";
+import MissingPermissionsError from "./MissingPermissionsError";
 import Console from "./Console";
-import {version} from "../package.json";
 
-export class Bot {
-	public readonly prefix = config.PREFIX;
-	public commands = new Collection<string, SlashCommand>();
-	public slashCommands = new Array<ApplicationCommandDataResolvable>();
-	public slashCommandsMap = new Collection<string, SlashCommand>();
-	public cooldowns = new Collection<string, Collection<Snowflake, number>>();
-	public queues = new Collection<Snowflake, MusicQueue>();
-
-	public constructor(public readonly client: Client) {
-		this.client.login(config.TOKEN);
-
-		this.client.on("ready", () => {
-			console.log(`${this.client.user!.username} v${version} ready!`);
-
-			this.registerSlashCommands();
+class Bot extends Client {
+	public constructor() {
+		super({
+			intents: [
+				GatewayIntentBits.Guilds,
+				GatewayIntentBits.GuildVoiceStates,
+				GatewayIntentBits.GuildMessages,
+				GatewayIntentBits.GuildMessageReactions,
+				GatewayIntentBits.MessageContent,
+				GatewayIntentBits.DirectMessages,
+			],
 		});
 
-		this.client.on("warn", info => console.log(info));
-		this.client.on("error", console.error);
+		this.commands = new Map();
+		this.queues = new Map();
+		this.cooldowns = new Map();
+		this.slashCommandsMap = new Map();
+		this.slashCommands = [];
 
-		this.client.on("messageCreate", e => {
+		this.on("warn", info => console.log(info));
+		this.on("error", console.error);
+		this.on("ready", this.registerSlashCommands);
+
+		this.on("messageCreate", e => {
 			if (/```[tj]s\n[\s\S]+\n```/.test(e.content)) {
 				return new Console().run(e);
 			}
 		});
 
-		this.onInteractionCreate();
-	}
-
-	private async registerSlashCommands() {
-		const rest = new REST({version: "9"}).setToken(config.TOKEN);
-
-		for (const file of await readdir(join(__dirname, "..", "commands"))) {
-			const command: SlashCommand = require(join(__dirname, "..", "commands", file));
-			const name = file.split(".")[0];
-
-			this.slashCommands.push(command.build(name));
-			this.slashCommandsMap.set(name, command);
-		}
-
-		await rest.put(Routes.applicationCommands(this.client.user!.id), {
-			body: this.slashCommands,
-		});
-	}
-
-	private async onInteractionCreate() {
-		this.client.on(Events.InteractionCreate, async (interaction: Interaction): Promise<any> => {
+		this.on("interactionCreate", async interaction => {
 			if (!interaction.isChatInputCommand()) return;
 
 			const command = this.slashCommandsMap.get(interaction.commandName);
@@ -72,25 +43,25 @@ export class Bot {
 			if (!command) return;
 
 			if (!this.cooldowns.has(interaction.commandName)) {
-				this.cooldowns.set(interaction.commandName, new Collection());
+				this.cooldowns.set(interaction.commandName, new Map());
 			}
 
 			const now = Date.now();
-			const timestamps: any = this.cooldowns.get(interaction.commandName);
+			const timestamps = this.cooldowns.get(interaction.commandName)!;
 			const cooldownAmount = (command.cooldown || 1) * 1000;
 
 			if (timestamps.has(interaction.user.id)) {
-				const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+				const expirationTime = timestamps.get(interaction.user.id)! + cooldownAmount;
 
 				if (now < expirationTime) {
 					const timeLeft = (expirationTime - now) / 1000;
-					return interaction.reply({
-						content: i18n.__mf("common.cooldownMessage", {
-							time: timeLeft.toFixed(1),
-							name: interaction.commandName,
-						}),
+					await interaction.reply({
+						content: `Please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${
+							interaction.commandName
+						}\` command.`,
 						ephemeral: true,
 					});
+					return;
 				}
 			}
 
@@ -103,19 +74,49 @@ export class Bot {
 				if (permissionsCheck.result) {
 					await command.execute(interaction);
 				} else {
-					throw new MissingPermissionsException(permissionsCheck.missing);
+					throw new MissingPermissionsError(permissionsCheck.missing);
 				}
 			} catch (error: any) {
 				console.error(error);
 
-				if (error.message.includes("permissions")) {
+				if (error instanceof MissingPermissionsError) {
 					await interaction.reply({content: error.toString(), ephemeral: true}).catch(console.error);
 				} else {
 					await interaction
-						.reply({content: i18n.__("common.errorCommand"), ephemeral: true})
+						.reply({content: "There was an error while executing this command!", ephemeral: true})
 						.catch(console.error);
 				}
 			}
 		});
+
+		this.login(process.env.TOKEN);
+	}
+
+	private async registerSlashCommands() {
+		const rest = new REST({version: "9"}).setToken(process.env.TOKEN!);
+
+		for (const file of await readdir(join(__dirname, "..", "commands"))) {
+			const command: SlashCommand = require(join(__dirname, "..", "commands", file));
+			const name = file.split(".")[0];
+
+			this.slashCommands.push(command.build(name));
+			this.slashCommandsMap.set(name, command);
+		}
+
+		await rest.put(Routes.applicationCommands(this.user!.id), {
+			body: this.slashCommands,
+		});
 	}
 }
+
+declare module "discord.js" {
+	export interface Client {
+		commands: Map<string, SlashCommand>;
+		slashCommands: ApplicationCommandDataResolvable[];
+		slashCommandsMap: Map<string, SlashCommand>;
+		cooldowns: Map<string, Map<Snowflake, number>>;
+		queues: Map<Snowflake, MusicQueue>;
+	}
+}
+
+export default Bot;

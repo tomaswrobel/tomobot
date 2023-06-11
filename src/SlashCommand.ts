@@ -1,7 +1,7 @@
 /*
  * This is a custom implementation of a slash command
  * It does not come from EvoBot
- * 
+ *
  * It works perfectly with the TypeScript IntelliSense.
  * To simplify the reply, you can use Async Generators.
  * When you yield a value, it will be sent as a message.
@@ -22,14 +22,14 @@ import {
  * @template O The options of the command
  */
 class SlashCommand<O extends SlashCommand.Options[] = []> {
-	options: O;
+	private options: O;
 	/**
 	 * The constructor of the command
 	 * @param data The information about the command
 	 * @param fn The Async Generator Function. Yield a string or an object to reply to the interaction
 	 * @param options The options of the command
 	 */
-	constructor(
+	public constructor(
 		private data: SlashCommand.Data,
 		private fn: (
 			this: ChatInputCommandInteraction | ButtonInteraction,
@@ -45,7 +45,7 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 	 * @param name The name of the command
 	 * @returns The built command
 	 */
-	build(name: string) {
+	public build(name: string) {
 		const builder = new SlashCommandBuilder().setName(name);
 
 		if (this.data.description) {
@@ -64,7 +64,7 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 	/**
 	 * Execute from a slash command interaction
 	 */
-	execute(interaction: ChatInputCommandInteraction) {
+	public execute(interaction: ChatInputCommandInteraction) {
 		return this.run(
 			interaction,
 			// @ts-expect-error - It is not possible to type this correctly
@@ -75,9 +75,12 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 	/**
 	 * Synthetically execute from a button interaction
 	 * @param interaction Interaction
-	 * @param args The arguments of the command 
+	 * @param args The arguments of the command
 	 */
-	async run(interaction: ChatInputCommandInteraction | ButtonInteraction, ...args: SlashCommand.ExtractParams<O>) {
+	public async run(
+		interaction: ChatInputCommandInteraction | ButtonInteraction,
+		...args: SlashCommand.ExtractParams<O>
+	) {
 		for await (const message of this.fn.apply(interaction, args)) {
 			if (message === SlashCommand.DEFER) {
 				await interaction.deferReply().catch(console.error);
@@ -91,7 +94,7 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 		}
 	}
 
-	async checkPermissions(interaction: ChatInputCommandInteraction) {
+	public async checkPermissions(interaction: ChatInputCommandInteraction) {
 		if (this.data.permissions) {
 			const member = await interaction.guild!.members.fetch({
 				user: interaction.client.user!.id,
@@ -111,14 +114,14 @@ class SlashCommand<O extends SlashCommand.Options[] = []> {
 		}
 	}
 
-	static readonly DEFER = Symbol("DEFER");
-	static readonly DELETE = Symbol("DELETE");
+	public static readonly DEFER = Symbol("DEFER");
+	public static readonly DELETE = Symbol("DELETE");
 
-	get cooldown() {
+	public get cooldown() {
 		return this.data.cooldown;
 	}
 
-	get description() {
+	public get description() {
 		return this.data.description;
 	}
 }

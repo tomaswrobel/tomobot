@@ -19,10 +19,8 @@ jobs:
       run: npm i -g typescript
     - name: 🏗 Build
       run: tsc
-    - name: Move files
-      run: |
-        mv package.json ./dist/package.json
-        mv ./locales/ ./dist/locales/
+    - name: Move package.json
+      run: mv package.json ./dist/package.json
     - name: Add config
       run: |
         echo 'TOKEN="${{secrets.TOKEN}}"' >> ./dist/.env

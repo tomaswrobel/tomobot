@@ -10,20 +10,15 @@ export = new SlashCommand(
 	async function* (amount) {
 		if (amount > 100) {
 			yield "You can only delete 100 messages at a time";
-			return;
 		} else if (amount < 1) {
 			yield "You must delete at least 1 message";
-			return;
 		} else {
 			yield `Deleting ${amount} messages...`;
+			const channel = this.channel as TextChannel;
+			const messages = await channel.messages.fetch({limit: amount});
+			await channel.bulkDelete(messages);
+			yield `Deleted ${messages.size} messages`;
 		}
-		const channel = this.channel as TextChannel;
-		const messages = await channel.messages.fetch({limit: amount});
-		await channel.bulkDelete(messages);
-		yield {
-			content: `Deleted ${messages.size} messages`,
-			ephemeral: true,
-		};
 	},
 	{
 		type: "Integer",

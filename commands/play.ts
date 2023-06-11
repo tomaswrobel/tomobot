@@ -1,19 +1,15 @@
 import {DiscordGatewayAdapterCreator, joinVoiceChannel} from "@discordjs/voice";
-import {
-	PermissionsBitField,
-	TextChannel,
-} from "discord.js";
-import {bot} from "../index";
-import {MusicQueue} from "../src/MusicQueue";
+import {PermissionsBitField, TextChannel} from "discord.js";
+import MusicQueue from "../src/MusicQueue";
 import {Song} from "../src/Song";
-import {i18n} from "../utils/i18n";
-import {playlistPattern} from "../utils/patterns";
 import SlashCommand from "../src/SlashCommand";
 import playlist from "./playlist";
 
+const playlistPattern = /^.*(list=)([^#\&\?]*).*/;
+
 export = new SlashCommand(
 	{
-		description: i18n.__("play.description"),
+		description: "Plays audio from YouTube",
 		permissions: [
 			PermissionsBitField.Flags.Connect,
 			PermissionsBitField.Flags.Speak,
@@ -27,19 +23,17 @@ export = new SlashCommand(
 
 		if (!channel) {
 			yield {
-				content: i18n.__("play.errorNotChannel"),
+				content: "You need to join a voice channel first!",
 				ephemeral: true,
 			};
 			return;
 		}
 
-		const queue = bot.queues.get(this.guild!.id);
+		const queue = this.client.queues.get(this.guild!.id);
 
 		if (queue && channel.id !== queue.connection.joinConfig.channelId) {
 			yield {
-				content: i18n.__mf("play.errorNotInSameChannel", {
-					user: bot.client.user!.username,
-				}),
+				content: `You must be in the same channel as ${this.client.user.username}`,
 				ephemeral: true,
 			};
 			return;
@@ -47,7 +41,7 @@ export = new SlashCommand(
 
 		if (!url) {
 			yield {
-				content: i18n.__mf("play.usagesReply", {prefix: bot.prefix}),
+				content: `"Usage: /play <YouTube URL | Video Name>"`,
 				ephemeral: true,
 			};
 			return;
@@ -67,18 +61,14 @@ export = new SlashCommand(
 		} catch (error: any) {
 			if (error.name == "NoResults") {
 				yield {
-					content: i18n.__mf("play.errorNoResults", {
-						url: `<${url}>`,
-					}),
+					content: `No results found for <${url}>`,
 					ephemeral: true,
 				};
 				return;
 			}
 			if (error.name == "InvalidURL") {
 				yield {
-					content: i18n.__mf("play.errorInvalidURL", {
-						url: `<${url}>`,
-					}),
+					content: "Invalid URL, please try a search or a YouTube URL",
 					ephemeral: true,
 				};
 				return;
@@ -86,7 +76,7 @@ export = new SlashCommand(
 
 			console.error(error);
 			yield {
-				content: i18n.__("common.errorCommand"),
+				content: "There was an error executing that command.",
 				ephemeral: true,
 			};
 			return;
@@ -95,14 +85,9 @@ export = new SlashCommand(
 		if (queue) {
 			queue.enqueue(song);
 
-			return this.channel!
-				.send({
-					content: i18n.__mf("play.queueAdded", {
-						title: song.title,
-						author: this.user.id,
-					}),
-				})
-				.catch(console.error);
+			return this.channel!.send({
+				content: `"✅ **${song.title}** has been added to the queue by <@${this.user.id}>`,
+			}).catch(console.error);
 		}
 
 		const newQueue = new MusicQueue({
@@ -111,19 +96,18 @@ export = new SlashCommand(
 			connection: joinVoiceChannel({
 				channelId: channel.id,
 				guildId: channel.guild.id,
-				adapterCreator: channel.guild
-					.voiceAdapterCreator as DiscordGatewayAdapterCreator,
+				adapterCreator: channel.guild.voiceAdapterCreator as DiscordGatewayAdapterCreator,
 			}),
 		});
 
-		bot.queues.set(this.guild!.id, newQueue);
+		this.client.queues.set(this.guild!.id, newQueue);
 		newQueue.enqueue(song);
 
 		yield SlashCommand.DELETE;
 	},
 	{
 		type: "String",
-		description: i18n.__("play.args.song"),
+		description: "The song to play. Can be a YouTube URL or a search query.",
 		name: "song",
 		required: true,
 	}

@@ -7,16 +7,13 @@ import {
 	EmbedBuilder,
 	PermissionsBitField,
 } from "discord.js";
-import {bot} from "../index";
 import {Song} from "../src/Song";
-import {i18n} from "../utils/i18n";
 import SlashCommand from "../src/SlashCommand";
 
 function generateQueueEmbed(interaction: CommandInteraction | ButtonInteraction, songs: Song[]) {
-	let embeds = [];
-	let k = 10;
+	const embeds = [];
 
-	for (let i = 0; i < songs.length; i += 10) {
+	for (let i = 0, k = 10; i < songs.length; i += 10) {
 		const current = songs.slice(i, k);
 		let j = i;
 		k += 10;
@@ -24,16 +21,10 @@ function generateQueueEmbed(interaction: CommandInteraction | ButtonInteraction,
 		const info = current.map(track => `${++j} - [${track.title}](${track.url})`).join("\n");
 
 		const embed = new EmbedBuilder()
-			.setTitle(i18n.__("queue.embedTitle"))
-			.setThumbnail(interaction.guild?.iconURL()!)
+			.setTitle("Song Queue")
+			.setThumbnail(interaction.guild!.iconURL())
 			.setColor("#F8AA2A")
-			.setDescription(
-				i18n.__mf("queue.embedCurrentSong", {
-					title: songs[0].title,
-					url: songs[0].url,
-					info: info,
-				})
-			)
+			.setDescription(`**Current Song - [${songs[0].title}](${songs[0].url})**\n\n${info}`)
 			.setTimestamp();
 		embeds.push(embed);
 	}
@@ -45,13 +36,12 @@ export = new SlashCommand(
 	{
 		cooldown: 5,
 		permissions: [PermissionsBitField.Flags.ManageMessages],
-		description: i18n.__("queue.description"),
+		description: "Show the music queue and now playing.",
 	},
 	async function* () {
-		const queue = bot.queues.get(this.guild!.id);
+		const queue = this.client.queues.get(this.guild!.id);
 		if (!queue || !queue.songs.length) {
-			yield i18n.__("queue.errorNotQueue");
-			return;
+			return yield "❌ **Nothing playing in this server**";
 		}
 
 		let currentPage = 0;
@@ -61,7 +51,7 @@ export = new SlashCommand(
 
 		if (this.replied) {
 			yield {
-				content: `**${i18n.__mf("queue.currentPage")} ${currentPage + 1}/${embeds.length}**`,
+				content: `**Current Page - ${currentPage + 1}/${embeds.length}**`,
 				embeds: [embeds[currentPage]],
 				components: [
 					new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -92,17 +82,14 @@ export = new SlashCommand(
 		});
 
 		collector.on("collect", async interaction => {
-			await interaction.deferReply();
-			await interaction.deleteReply();
+			await interaction.deferReply().catch(console.error);
+			await interaction.deleteReply().catch(console.error);
 			try {
 				if (interaction.id === "next") {
 					if (currentPage < embeds.length - 1) {
 						currentPage++;
 						queueEmbed.edit({
-							content: i18n.__mf("queue.currentPage", {
-								page: currentPage + 1,
-								length: embeds.length,
-							}),
+							content: `**Current Page - ${currentPage + 1}/${embeds.length}**`,
 							embeds: [embeds[currentPage]],
 						});
 					}
@@ -110,10 +97,7 @@ export = new SlashCommand(
 					if (currentPage !== 0) {
 						--currentPage;
 						queueEmbed.edit({
-							content: i18n.__mf("queue.currentPage", {
-								page: currentPage + 1,
-								length: embeds.length,
-							}),
+							content: `**Current Page - ${currentPage + 1}/${embeds.length}**`,
 							embeds: [embeds[currentPage]],
 						});
 					}

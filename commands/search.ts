@@ -1,23 +1,18 @@
-import {
-	ActionRowBuilder,
-	StringSelectMenuBuilder,
-	StringSelectMenuInteraction,
-} from "discord.js";
+import {ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction} from "discord.js";
 import youtube, {Video} from "youtube-sr";
-import {i18n} from "../utils/i18n";
 import SlashCommand from "../src/SlashCommand";
 import play from "./play";
 
 export = new SlashCommand(
 	{
-		description: i18n.__("search.description"),
+		description: "Search and select videos to play",
 	},
 	async function* (search) {
 		const member = this.guild!.members.cache.get(this.user.id);
 
 		if (!member?.voice.channel) {
 			yield {
-				content: i18n.__("search.errorNotChannel"),
+				content: "You need to join a voice channel first!",
 				ephemeral: true,
 			};
 			return;
@@ -32,7 +27,7 @@ export = new SlashCommand(
 		} catch (error: any) {
 			console.error(error);
 
-			yield i18n.__("common.errorCommand");
+			yield "An error occurred while searching 🙁";
 		}
 
 		if (!results.length) {
@@ -80,7 +75,7 @@ export = new SlashCommand(
 	{
 		type: "String",
 		name: "query",
-		description: i18n.__("search.optionQuery"),
+		description: "Search query",
 		required: true,
 	}
 );
