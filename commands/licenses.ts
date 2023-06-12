@@ -6,7 +6,7 @@ import {join} from "path";
 const api = `https://api.github.com/repos${new URL(repository).pathname}`;
 
 export = new SlashCommand({description: "See open-source licenses"}, async function* () {
-	yield SlashCommand.DEFER;
+	yield "Loading...";
 
 	const embed = new EmbedBuilder();
 
