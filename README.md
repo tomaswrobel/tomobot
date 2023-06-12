@@ -10,6 +10,7 @@
 2. Enable 'Message Content Intent' in Discord Developer Portal
 2. Node.js v18 or higher
 3. [Unsplash](https://unsplash.com) API Access key
+4. MySQL enabled
 
 ## 🚀 Getting Started (with SparkedHost)
 
@@ -17,6 +18,7 @@ First, clone the repo. Then, provide the Secrets:
 1. `TOKEN` - being the Discord Bot Token
 2. `UNSPLASH_ACCESS_KEY` - being the Unsplash access key (not the secret one)
 3. `USERNAME`, `PASSWORD` - Your login info found in the panel
+4. `DB_USERNAME`, `DB_PASSWORD`, `DATABASE` - after creating a database
 
 Then commit and run!
 
@@ -110,7 +112,8 @@ export = new SlashCommand(
 3. Running JS and TS from message
 4. AZ quiz (pyramid game)
 5. A quiz (single Q/A)
-6. Huge API rewrite since v2
+6. Point system
+7. Huge API rewrite since v2
 
 ## LICENSE
 Original Author &copy; Erit Islami 2019
