@@ -74,30 +74,17 @@ import SlashCommand from "../src/SlashCommand";
 
 export = new SlashCommand(
     {
-        description: "Your description"
-    },
-    async function* () {
-        // Yielding causes a reply to be sent
-        yield "Hello world!";
-    },
-)
-```
-
-or
-
-```ts
-import SlashCommand from "../src/SlashCommand";
-
-export = new SlashCommand(
-    {
         description: "Your description",
     },
+    // User is automatically typed
     async function* (user) {
+        // When yoy yield, the reply is sent / edited
         yield `Hello world, @${user.tag}!`;
 
-        // If you really need the Interaction AI, you use this:
+        // If you really need the Interaction API, you use this:
         yield `Hello world, @${this.user.tag}!`;
     },
+    // You can specify as many options as you wish
     {
         type: "User",
         name: "user",

@@ -3,7 +3,7 @@ import {dependencies, repository} from "../package.json";
 import SlashCommand from "../src/SlashCommand";
 import {join} from "path";
 
-const api = `https://api.github.com/repos${new URL(repository).pathname}`;
+const api = `https://api.github.com/repos${new URL(repository.url).pathname}`;
 
 export = new SlashCommand({description: "See open-source licenses"}, async function* () {
 	yield "Loading...";
@@ -30,11 +30,11 @@ export = new SlashCommand({description: "See open-source licenses"}, async funct
 				value: "The core of the music functions. \n[View on GitHub](https://github.com/eritislami/evobot)",
 			}),
 			new EmbedBuilder()
-				.setTitle(`${this.client.user.username} source code`)
+				.setTitle(`${this.client.user.username}'s source code`)
 				.setAuthor({
 					name: owner.login,
 					iconURL: owner.avatar_url,
-					url: repository
+					url: repository.url
 				})
 				.setDescription(description),
 		],

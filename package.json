@@ -1,10 +1,17 @@
 {
 	"name": "tomobot",
-	"version": "2.6.1",
-	"description": "Tomobot is an EvoBot-based discord bot.",
+	"version": "2.6.2",
+	"description": "Tomobot is a multi-purpose Discord bot.",
 	"main": "index.js",
-	"repository": "https://github.com/tomas-wrobel/tomobot",
-	"author": "Tomáš Wróbel <coder@tomaswrobel.dev>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tomas-wrobel/tomobot"
+	},
+	"author": {
+		"email": "coder@tomaswrobel.dev",
+		"name": "Tomáš Wróbel",
+		"url": "https://tomaswrobel.dev"
+	},
 	"license": "MIT",
 	"private": true,
 	"dependencies": {
