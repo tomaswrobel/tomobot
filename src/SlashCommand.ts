@@ -15,7 +15,6 @@ import {
 	SlashCommandBuilder,
 	type CommandInteractionOptionResolver,
 	type PermissionResolvable,
-	ButtonInteraction,
 } from "discord.js";
 
 /**
