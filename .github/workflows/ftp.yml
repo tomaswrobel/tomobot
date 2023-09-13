@@ -29,11 +29,11 @@ jobs:
         echo 'DB_PASSWORD="${{secrets.DB_PASSWORD}}"' >> ./dist/.env
         echo 'DATABASE="${{secrets.DATABASE}}"' >> ./dist/.env
     - name: 📂 Sync files
-      uses: wangyucode/sftp-upload-action@v2.0.2
-      with:
-        host: 'v-buf-29.sparkedhost.us'
-        username: ${{secrets.USERNAME}}
-        password: ${{secrets.PASSWORD}}
-        localDir: 'dist'
-        remoteDir: '/home/container'
-        port: 2022
+      uses: SamKirkland/FTP-Deploy-Action@v2.0.0
+      env:
+        METHOD: sftp
+        FTP_PASSWORD: ${{secrets.PASSWORD}}
+        FTP_SERVER: v-buf-29.sparkedhost.us
+        FTP_USERNAME: ${{secrets.USERNAME}}
+        LOCAL_DIR: dist
+        PORT: 2022
