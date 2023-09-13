@@ -29,7 +29,7 @@ jobs:
         echo 'DB_PASSWORD="${{secrets.DB_PASSWORD}}"' >> ./dist/.env
         echo 'DATABASE="${{secrets.DATABASE}}"' >> ./dist/.env
     - name: 📂 Sync files
-      uses: wangyucode/sftp-upload-action
+      uses: wangyucode/sftp-upload-action@v2.0.2
       with:
         host: 'v-buf-29.sparkedhost.us'
         username: ${{secrets.USERNAME}}
