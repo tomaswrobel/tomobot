@@ -37,3 +37,4 @@ jobs:
         FTP_USERNAME: ${{secrets.USERNAME}}
         LOCAL_DIR: dist
         PORT: 2022
+        ARGS: --delete
