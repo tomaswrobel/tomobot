@@ -33,7 +33,7 @@ jobs:
       env:
         METHOD: sftp
         FTP_PASSWORD: ${{secrets.PASSWORD}}
-        FTP_SERVER: v-buf-29.sparkedhost.us:2022
+        FTP_SERVER: v-buf-29.sparkedhost.us
         FTP_USERNAME: ${{secrets.USERNAME}}
         LOCAL_DIR: dist
         PORT: 2022        
